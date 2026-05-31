@@ -9,7 +9,7 @@
         color-scheme: dark;
         font-family: Motiva Sans, Inter, ui-sans-serif, system-ui, sans-serif;
         background: #090b10;
-        color: #d7d7d9;
+        color: #d9d9dc;
       }
 
       * {
@@ -38,19 +38,8 @@
         width: 100vw;
       }
 
-      .game {
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        height: 42%;
-        left: 7%;
-        opacity: 0.55;
-        position: absolute;
-        top: 20%;
-        transform: skewX(-7deg);
-        width: 42%;
-      }
-
       .shade {
-        background: rgba(0, 0, 0, 0.36);
+        background: rgba(0, 0, 0, 0.38);
         height: 100%;
         position: absolute;
         width: 100%;
@@ -60,7 +49,6 @@
         background: #10131a;
         border-left: 1px solid rgba(255, 255, 255, 0.08);
         box-shadow: -22px 0 60px rgba(0, 0, 0, 0.5);
-        color: #d7d7d9;
         height: 100%;
         padding: 18px 16px;
         position: absolute;
@@ -69,16 +57,28 @@
         width: 360px;
       }
 
+      .header,
+      .status,
+      .thread {
+        align-items: center;
+        display: flex;
+      }
+
+      .header {
+        align-items: flex-start;
+        justify-content: space-between;
+      }
+
       .title {
-        color: #f1f1f2;
+        color: #f4f4f5;
         font-size: 14px;
-        font-weight: 600;
-        margin-bottom: 2px;
+        font-weight: 650;
       }
 
       .endpoint,
-      .muted {
-        color: #8f9298;
+      .muted,
+      .eyebrow {
+        color: #9297a1;
         font-size: 11px;
       }
 
@@ -87,152 +87,181 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-      }
-
-      .row {
-        margin-top: 10px;
-      }
-
-      .grid {
-        display: grid;
-        gap: 6px;
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .single {
-        display: grid;
-        gap: 6px;
-        grid-template-columns: 1fr;
-      }
-
-      button {
-        align-items: center;
-        background: #171b22;
-        border: 1px solid #323844;
-        border-radius: 4px;
-        color: #d5d8de;
-        display: flex;
-        font-size: 12px;
-        font-weight: 500;
-        justify-content: center;
-        line-height: 1.15;
-        min-height: 31px;
-        padding: 5px 8px;
-        width: 100%;
-      }
-
-      button:focus-visible {
-        background: #242b36;
-        border-color: #8c98aa;
-        box-shadow: inset 0 0 0 1px #8c98aa;
-        color: #f3f4f7;
-        outline: 0;
-      }
-
-      input {
-        background: #171b22;
-        border: 1px solid #323844;
-        border-radius: 4px;
-        color: #d5d8de;
-        min-height: 33px;
-        outline: 0;
-        padding: 6px 8px;
-        width: 100%;
-      }
-
-      label {
-        color: #a5a8af;
-        display: block;
-        font-size: 11px;
-        font-weight: 600;
-        margin: 8px 0 4px;
-        text-transform: uppercase;
-      }
-
-      .settings {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        margin: 10px 0 8px;
-        padding-bottom: 8px;
+        width: 188px;
       }
 
       .status {
-        align-items: center;
-        display: flex;
-        gap: 8px;
-        margin-top: 12px;
-        min-height: 24px;
+        background: #151922;
+        border: 1px solid #2e3541;
+        border-radius: 999px;
+        font-size: 11px;
+        gap: 6px;
+        min-height: 23px;
+        padding: 0 9px;
       }
 
       .dot {
-        background: #5fb878;
+        background: #65b97b;
         border-radius: 50%;
         height: 7px;
         width: 7px;
       }
 
+      .toolbar,
+      .grid {
+        display: grid;
+        gap: 6px;
+        grid-template-columns: 1fr 1fr;
+        margin-top: 10px;
+      }
+
+      button {
+        align-items: center;
+        background: #171b22;
+        border: 1px solid #303744;
+        border-radius: 4px;
+        color: #d7dae0;
+        display: flex;
+        font-size: 12px;
+        font-weight: 550;
+        justify-content: center;
+        min-height: 31px;
+        padding: 5px 8px;
+        width: 100%;
+      }
+
+      .primary {
+        background: #232a35;
+        border-color: #4c5668;
+        color: #f0f2f5;
+      }
+
+      .quiet {
+        background: #11151c;
+        border-color: #262c36;
+        color: #bfc3cb;
+      }
+
+      .danger {
+        background: #241a1d;
+        border-color: #57313a;
+        color: #f0d6dc;
+      }
+
+      .work {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        margin-top: 12px;
+        padding-bottom: 10px;
+      }
+
+      .thread {
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .thread-name {
+        color: #f0f0f1;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
       .task,
       .message {
-        color: #d7d7d9;
+        color: #d7d7da;
         font-size: 12px;
         line-height: 1.35;
         overflow-wrap: anywhere;
       }
 
-      .messages {
+      .approval {
+        background: #151922;
+        border: 1px solid #3a4250;
+        border-left: 3px solid #d0c7a1;
+        border-radius: 5px;
+        margin-top: 10px;
+        padding: 9px;
+      }
+
+      code {
+        background: #0f1218;
+        border: 1px solid #2a3039;
+        border-radius: 4px;
+        color: #d8d8d8;
+        display: block;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 11px;
+        margin-top: 7px;
+        padding: 7px;
+      }
+
+      .activity {
         display: flex;
         flex-direction: column;
-        gap: 7px;
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      input {
+        background: #171b22;
+        border: 1px solid #303744;
+        border-radius: 4px;
+        color: #d7dae0;
+        margin-top: 6px;
+        min-height: 38px;
+        padding: 6px 8px;
+        width: 100%;
       }
     </style>
   </head>
   <body>
     <main class="screen">
-      <div class="game"></div>
       <div class="shade"></div>
       <aside class="quick-access" aria-label="Codex Remote panel">
-        <div class="title">Codex</div>
-        <div class="endpoint">ws://192.168.1.81:43871</div>
+        <header class="header">
+          <div>
+            <div class="title">Codex</div>
+            <div class="endpoint">ws://192.168.1.81:43871</div>
+          </div>
+          <div class="status"><span class="dot"></span>Working</div>
+        </header>
 
-        <div class="row grid">
-          <button>Hide Settings</button>
-          <button>Refresh</button>
+        <div class="toolbar">
+          <button class="quiet">Setup</button>
+          <button class="quiet">Refresh</button>
         </div>
 
-        <section class="settings">
-          <label for="host">Host</label>
-          <input id="host" value="192.168.1.81" />
-          <div class="row single"><button>Scan LAN</button></div>
-          <label for="port">Port</label>
-          <input id="port" value="43871" />
-          <label for="token">Token</label>
-          <input id="token" value="••••••••••••••••" />
-          <div class="row grid">
-            <button>Connect</button>
-            <button>Disconnect</button>
+        <section class="work">
+          <div class="thread">
+            <span class="dot"></span>
+            <span class="thread-name">Decky remote</span>
           </div>
-          <div class="row single"><button>Check Server</button></div>
-          <div class="row message">Found 1 Codex server(s).</div>
+          <div class="eyebrow">Current task</div>
+          <div class="task">Refine the Steam Deck plugin into a mobile-style Codex control surface.</div>
         </section>
 
-        <section>
-          <div class="status">
-            <span class="dot"></span>
-            <span>Decky remote</span>
-            <span class="muted">working</span>
-          </div>
-          <div class="row task">
-            <div class="muted">Current task</div>
-            <div>Fix LAN discovery and clean the Steam Deck panel UI.</div>
-          </div>
-          <div class="row messages">
-            <div class="message">Codex App Server is reachable.</div>
-            <div class="message">LAN scan returned 192.168.1.81:43871.</div>
-            <div class="message">Ready for remote actions.</div>
-          </div>
-          <label for="message">Message</label>
-          <input id="message" value="" />
-          <div class="row single"><button>Send</button></div>
+        <section class="approval">
+          <div class="eyebrow">Approval request</div>
+          <div class="message">Run the packaged build and deploy it to the Steam Deck?</div>
+          <code>pnpm run package</code>
         </section>
+
+        <div class="grid">
+          <button class="primary">Approve</button>
+          <button class="danger">Deny</button>
+        </div>
+
+        <section class="activity">
+          <div class="eyebrow">Activity</div>
+          <div class="message">LAN scan found 192.168.1.81:43871.</div>
+          <div class="message">Codex App Server is connected.</div>
+          <div class="message">Waiting for the next decision.</div>
+        </section>
+
+        <input aria-label="Message" placeholder="Message" />
+        <div class="grid">
+          <button class="primary">Send</button>
+          <button class="quiet">Pause</button>
+        </div>
       </aside>
     </main>
   </body>

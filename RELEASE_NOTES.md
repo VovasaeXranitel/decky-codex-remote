@@ -1,13 +1,13 @@
-# Codex Remote v0.1.6
+# Codex Remote v0.1.7
 
-Decky callable runtime fix.
+Mobile-style Codex control surface pass.
 
 ## Highlights
 
-- Adds `api_version: 1` to the Decky manifest.
-- Fixes settings and action buttons failing with `api_version 1 or newer is required`.
-- Keeps the universal LAN scan and cleaned Steam Deck panel from v0.1.5.
-- Verified against the installed plugin on Steam Deck.
+- Makes current work, activity, approvals, and message input the main panel flow.
+- Moves connection, scan, token, and account controls into a compact Setup area.
+- Adds visual hierarchy for primary, quiet, and deny actions.
+- Keeps the v0.1.6 Decky callable fix and universal LAN scan.
 
 ## Install
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.7 - 2026-05-31
+
+Move the panel toward the Codex mobile control-surface model.
+
+- Remove the local attachment photo folder from the workspace.
+- Rework the Decky panel around current work, activity, approvals, and the composer.
+- Collapse connection and account controls into a secondary Setup area.
+- Add clearer button hierarchy for primary, quiet, and deny actions.
+- Refresh the local Steam Deck preview to match the new structure.
+
 ## 0.1.6 - 2026-05-31
 
 Fix Decky callable runtime on Steam Deck.
