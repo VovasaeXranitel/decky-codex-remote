@@ -1,14 +1,14 @@
-# Codex Remote v0.1.14
+# Codex Remote v0.1.15
 
-Scrollable transcript and streaming pass.
+Steam Deck transcript scrolling fix.
 
 ## Highlights
 
-- Replaces the one-line activity log with a scrollable transcript.
-- Adds professional cards for Codex/user messages, reasoning, commands, tools, file changes, approvals, errors, and events.
-- Keeps streaming Codex deltas together as one live transcript item.
-- Formats command and tool payloads in compact monospace blocks with statuses.
-- Verified through package builds and live Codex App Server transcript reads.
+- Wraps the transcript in Decky's native `ScrollPanel` and `ScrollPanelGroup`.
+- Adds explicit `Up` and `Down` controls so scrolling works from the Steam Deck controls.
+- Keeps wheel/touch scrolling on the focused transcript area.
+- Keeps the v0.1.14 structured transcript cards and streaming behavior.
+- Verified through package build and Python backend checks.
 
 ## Install
 

@@ -1,6 +1,6 @@
 {
   "name": "codex-remote-decky",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Decky Loader plugin for controlling Codex App from Steam Deck.",
   "type": "module",
   "license": "MIT",

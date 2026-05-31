@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.15 - 2026-05-31
+
+Fix Steam Deck transcript scrolling.
+
+- Wrap the transcript in Decky's native `ScrollPanel`/`ScrollPanelGroup`.
+- Add explicit `Up` and `Down` controls for reliable gamepad scrolling.
+- Keep wheel/touch scrolling available inside the focused transcript area.
+
 ## 0.1.14 - 2026-05-31
 
 Add a scrollable professional transcript.

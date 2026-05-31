@@ -7,10 +7,12 @@ import {
   Focusable,
   PanelSection,
   PanelSectionRow,
+  ScrollPanel,
+  ScrollPanelGroup,
   TextField,
   ToggleField,
 } from "@decky/ui";
-import { FC, ReactNode, useEffect, useMemo, useState } from "react";
+import { FC, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { FaTerminal } from "react-icons/fa";
 
 type CodexState = {
@@ -417,10 +419,36 @@ const styles = `
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 330px;
-  overflow-y: auto;
   padding-right: 2px;
+}
+
+.codexRemoteScrollFrame {
+  border: 1px solid #222934;
+  border-radius: 5px;
+  max-height: 330px;
+  min-height: 170px;
+  overflow: hidden;
+}
+
+.codexRemoteScrollInner {
+  max-height: 330px;
+  min-height: 170px;
+  overflow-y: auto;
+  padding: 6px;
   scrollbar-width: thin;
+}
+
+.codexRemoteScrollInnerFocus,
+.codexRemoteScrollInner:focus {
+  border-color: #8d98a8;
+  box-shadow: inset 0 0 0 1px #8d98a8;
+}
+
+.codexRemoteScrollActions {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 8px;
 }
 
 .codexRemoteMessage {
@@ -708,6 +736,7 @@ const CodexRemotePanel: FC = () => {
   const [devices, setDevices] = useState<DiscoveredDevice[]>([]);
   const [accountMessage, setAccountMessage] = useState("");
   const [login, setLogin] = useState<ChatGptLogin | null>(null);
+  const transcriptRef = useRef<HTMLDivElement | null>(null);
 
   const endpoint = useMemo(
     () => (settings.host ? `ws://${settings.host}:${settings.port}` : "not configured"),
@@ -876,6 +905,17 @@ const CodexRemotePanel: FC = () => {
       console.warn("[Codex Remote] Select chat failed", error);
       setActionMessage("Chat switch failed.");
     }
+  };
+
+  const scrollTranscript = (direction: "up" | "down") => {
+    const element = transcriptRef.current;
+    if (!element) {
+      return;
+    }
+    element.scrollBy({
+      behavior: "smooth",
+      top: direction === "up" ? -180 : 180,
+    });
   };
 
   return (
@@ -1052,10 +1092,30 @@ const CodexRemotePanel: FC = () => {
               <div className="codexRemoteEyebrow">Transcript</div>
               <div className="codexRemoteTranscriptCount">{transcript.length}</div>
             </div>
-            <div className="codexRemoteLog">
-              {transcript.map((item, index) => (
-                <TranscriptCard item={item} key={`${item.id}-${index}`} />
-            ))}
+            <div className="codexRemoteScrollFrame">
+              <ScrollPanelGroup>
+                <ScrollPanel>
+                  <Focusable
+                    className="codexRemoteScrollInner"
+                    focusClassName="codexRemoteScrollInnerFocus"
+                    onWheel={(event) => {
+                      transcriptRef.current?.scrollBy({ top: event.deltaY });
+                    }}
+                    ref={transcriptRef}
+                    tabIndex={0}
+                  >
+                    <div className="codexRemoteLog">
+                      {transcript.map((item, index) => (
+                        <TranscriptCard item={item} key={`${item.id}-${index}`} />
+                      ))}
+                    </div>
+                  </Focusable>
+                </ScrollPanel>
+              </ScrollPanelGroup>
+            </div>
+            <div className="codexRemoteScrollActions">
+              <CodexButton compact variant="quiet" onClick={() => scrollTranscript("up")}>Up</CodexButton>
+              <CodexButton compact variant="quiet" onClick={() => scrollTranscript("down")}>Down</CodexButton>
             </div>
           </div>
         </PanelSectionRow>

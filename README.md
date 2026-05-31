@@ -15,6 +15,7 @@ The plugin is designed to be account-neutral. It does not include an OpenAI API 
 - Chat picker with user-facing Codex thread names/previews.
 - Current chat/status/task view.
 - Scrollable transcript with structured Codex, user, reasoning, command, tool, file-change, approval, and error cards.
+- Native Decky transcript scrolling plus explicit `Up`/`Down` controls for gamepad use.
 - Controller-friendly `Approve`, `Deny`, `Pause`, and `Reply` actions.
 - Python backend for persisted plugin settings.
 - Direct Codex App Server WebSocket JSON-RPC client in the plugin backend.
