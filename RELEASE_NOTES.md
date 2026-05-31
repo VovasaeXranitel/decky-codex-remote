@@ -1,14 +1,13 @@
-# Codex Remote v0.1.5
+# Codex Remote v0.1.6
 
-LAN discovery and Steam Deck panel cleanup patch.
+Decky callable runtime fix.
 
 ## Highlights
 
-- Removes localhost-only discovery behavior from the production LAN scanner.
-- Scans SteamOS IPv4 LAN prefixes even when a saved host is configured.
-- Replaces the broken localized labels with stable ASCII labels.
-- Keeps Decky buttons dark and adds gamepad OK handling.
-- Verified from Steam Deck with both saved-host and blank-host LAN scans.
+- Adds `api_version: 1` to the Decky manifest.
+- Fixes settings and action buttons failing with `api_version 1 or newer is required`.
+- Keeps the universal LAN scan and cleaned Steam Deck panel from v0.1.5.
+- Verified against the installed plugin on Steam Deck.
 
 ## Install
 

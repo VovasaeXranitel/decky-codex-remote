@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.6 - 2026-05-31
+
+Fix Decky callable runtime on Steam Deck.
+
+- Declare Decky `api_version: 1` in the plugin manifest.
+- Unblock index-based callable arguments used by `@decky/api`.
+- Restore settings, scan, connect, disconnect, refresh, and action button calls.
+
 ## 0.1.5 - 2026-05-31
 
 Fix LAN discovery and Steam Deck panel usability.
