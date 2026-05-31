@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.13 - 2026-05-31
+
+Add chat selection and fix thread titles.
+
+- Add a Steam Deck chat picker for switching Codex threads.
+- Use Codex thread `name` and `preview` instead of showing raw thread ids.
+- Improve button spacing in compact Decky grids.
+- Refocus the panel around Codex mobile's chat, task, activity, approval, and reply flow.
+
 ## 0.1.12 - 2026-05-31
 
 Tighten the real Steam Deck panel layout.

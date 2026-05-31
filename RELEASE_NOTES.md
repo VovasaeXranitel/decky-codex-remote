@@ -1,14 +1,14 @@
-# Codex Remote v0.1.12
+# Codex Remote v0.1.13
 
-Steam Deck panel density pass.
+Chat picker and title fix.
 
 ## Highlights
 
-- Moves Setup and Sync into compact header actions.
-- Keeps the default panel focused on status, current task, activity, and reply.
-- Shortens connection controls to Scan, Link, ChatGPT, and More.
-- Keeps manual Host/Port/Token controls in Advanced.
-- Verified through live Steam Deck QuickAccess CEF screenshots.
+- Adds a `Chat` picker for switching Codex threads from the Steam Deck panel.
+- Uses Codex thread names/previews instead of raw UUID thread ids.
+- Adds clearer spacing between compact buttons.
+- Keeps the panel focused on chat, task, activity, approvals, and reply.
+- Verified through package builds and live Steam Deck QuickAccess screenshots.
 
 ## Install
 

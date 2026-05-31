@@ -92,7 +92,7 @@
 
       .header-actions {
         display: flex;
-        gap: 5px;
+        gap: 8px;
         margin-top: 6px;
       }
 
@@ -116,10 +116,11 @@
       .toolbar,
       .grid {
         display: grid;
-        gap: 6px;
+        column-gap: 8px;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         margin-top: 10px;
         min-width: 0;
+        row-gap: 8px;
       }
 
       button {
@@ -167,6 +168,41 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         margin-top: 10px;
         padding-bottom: 8px;
+      }
+
+      .section {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        margin-top: 10px;
+        padding-bottom: 8px;
+      }
+
+      .section-header {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 7px;
+      }
+
+      .chat-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .chat-item {
+        align-items: center;
+        background: #141820;
+        border: 1px solid #2b323d;
+        border-radius: 5px;
+        display: flex;
+        gap: 8px;
+        min-height: 38px;
+        padding: 7px 9px;
+      }
+
+      .chat-item.active {
+        background: #1d232d;
+        border-color: #596477;
       }
 
       .thread {
@@ -238,7 +274,7 @@
       <aside class="quick-access" aria-label="Codex Remote panel">
         <header class="header">
           <div>
-            <div class="title">Codex</div>
+            <div class="title">Remote</div>
             <div class="endpoint">ws://192.168.1.81:43871</div>
             <div class="header-actions">
               <button class="quiet compact">Setup</button>
@@ -248,11 +284,22 @@
           <div class="status"><span class="dot"></span>Working</div>
         </header>
 
-        <section class="work">
-          <div class="thread">
-            <span class="dot"></span>
-            <span class="thread-name">Decky remote</span>
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="eyebrow">Chat</div>
+              <div class="thread-name">Steamdeck Codex Plugin</div>
+            </div>
+            <button class="quiet compact">Change</button>
           </div>
+          <div class="chat-list">
+            <div class="chat-item active"><span class="dot"></span><span class="thread-name">Steamdeck Codex Plugin</span></div>
+            <div class="chat-item"><span class="dot"></span><span class="thread-name">Инсталяторная</span></div>
+            <div class="chat-item"><span class="dot"></span><span class="thread-name">Основной чат</span></div>
+          </div>
+        </section>
+
+        <section class="work">
           <div class="eyebrow">Current task</div>
           <div class="task">Refine the Steam Deck plugin into a mobile-style Codex control surface.</div>
         </section>

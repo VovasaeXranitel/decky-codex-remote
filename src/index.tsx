@@ -16,10 +16,21 @@ import { FaTerminal } from "react-icons/fa";
 type CodexState = {
   status: "disconnected" | "idle" | "working" | "approval";
   thread: string;
+  threadId: string;
+  threads: CodexThread[];
   task: string;
   approvalText?: string;
   command?: string;
   messages: string[];
+};
+
+type CodexThread = {
+  id: string;
+  title: string;
+  status: CodexState["status"];
+  active: boolean;
+  loaded: boolean;
+  updatedAt?: number;
 };
 
 type Settings = {
@@ -63,6 +74,8 @@ type ChatGptLogin = ConnectionCheck & {
 const defaultState: CodexState = {
   status: "disconnected",
   thread: "Decky remote",
+  threadId: "",
+  threads: [],
   task: "Not connected",
   messages: ["Open Setup, scan LAN, then connect."],
 };
@@ -78,6 +91,7 @@ const getSettings = callable<[], Settings>("get_settings");
 const setSettings = callable<[Settings], Settings>("set_settings");
 const getState = callable<[], CodexState>("get_state");
 const sendAction = callable<[string, string?], CodexState>("send_action");
+const selectThread = callable<[string], CodexState>("select_thread");
 const testConnection = callable<[], ConnectionCheck>("test_connection");
 const connectServer = callable<[], ConnectionCheck>("connect");
 const disconnectServer = callable<[], ConnectionCheck>("disconnect");
@@ -153,7 +167,7 @@ const styles = `
 
 .codexRemoteHeaderActions {
   display: flex;
-  gap: 5px;
+  gap: 8px;
   justify-content: flex-end;
   margin-top: 6px;
 }
@@ -186,7 +200,8 @@ const styles = `
 .codexRemoteActionGrid,
 .codexRemoteActionGridSingle {
   display: grid;
-  gap: 6px;
+  column-gap: 8px;
+  row-gap: 8px;
   min-width: 0;
 }
 
@@ -218,6 +233,10 @@ const styles = `
   padding: 5px 8px;
   text-align: center;
   width: auto !important;
+}
+
+.codexRemoteHeaderActions .codexRemoteButton {
+  min-width: 58px;
 }
 
 .codexRemoteButtonCompact {
@@ -269,6 +288,59 @@ const styles = `
   flex-direction: column;
   gap: 6px;
   padding-bottom: 8px;
+}
+
+.codexRemoteSection {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+}
+
+.codexRemoteSectionHeader {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+
+.codexRemoteChatList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.codexRemoteChatItem {
+  align-items: center;
+  background: #141820;
+  border: 1px solid #2b323d;
+  border-radius: 5px;
+  color: #d9d9dc;
+  display: flex;
+  gap: 8px;
+  min-height: 38px;
+  min-width: 0;
+  padding: 7px 9px;
+}
+
+.codexRemoteChatItemActive {
+  background: #1d232d;
+  border-color: #596477;
+}
+
+.codexRemoteChatItemFocus,
+.codexRemoteChatItem:focus {
+  border-color: #8d98a8;
+  box-shadow: inset 0 0 0 1px #8d98a8;
+}
+
+.codexRemoteChatTitle {
+  color: #eeeeef;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .codexRemoteThreadLine {
@@ -435,10 +507,35 @@ const CodexButton: FC<CodexButtonProps> = ({
   );
 };
 
+type ChatItemProps = {
+  thread: CodexThread;
+  onSelect: () => void;
+};
+
+const ChatItem: FC<ChatItemProps> = ({ thread, onSelect }) => {
+  const activate = () => onSelect();
+
+  return (
+    <Focusable
+      className={`codexRemoteChatItem${thread.active ? " codexRemoteChatItemActive" : ""}`}
+      focusClassName="codexRemoteChatItemFocus"
+      onActivate={activate}
+      onClick={activate}
+      onOKButton={activate}
+      role="button"
+      tabIndex={0}
+    >
+      <span className={`codexRemoteDot ${statusClass[thread.status] || statusClass.idle}`} />
+      <span className="codexRemoteChatTitle">{thread.title}</span>
+    </Focusable>
+  );
+};
+
 const CodexRemotePanel: FC = () => {
   const [state, setState] = useState<CodexState>(defaultState);
   const [settings, setLocalSettings] = useState<Settings>(defaultSettings);
   const [reply, setReply] = useState("");
+  const [showChats, setShowChats] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [connectionMessage, setConnectionMessage] = useState("");
@@ -452,6 +549,7 @@ const CodexRemotePanel: FC = () => {
     [settings.host, settings.port],
   );
   const setupOpen = showSetup || state.status === "disconnected";
+  const visibleThreads = state.threads.length ? state.threads.slice(0, 5) : [];
 
   const refreshState = async () => {
     try {
@@ -594,13 +692,25 @@ const CodexRemotePanel: FC = () => {
     }
   };
 
+  const runSelectThread = async (threadId: string) => {
+    try {
+      const nextState = await selectThread(threadId);
+      setState(nextState);
+      setShowChats(false);
+      setActionMessage("");
+    } catch (error) {
+      console.warn("[Codex Remote] Select chat failed", error);
+      setActionMessage("Chat switch failed.");
+    }
+  };
+
   return (
     <div className="codexRemote">
       <style>{styles}</style>
       <PanelSection>
         <div className="codexRemoteHeader">
           <div>
-            <div className="codexRemoteTitle">Codex</div>
+            <div className="codexRemoteTitle">Remote</div>
             <div className="codexRemoteEndpoint">{endpoint}</div>
             <div className="codexRemoteHeaderActions">
               <CodexButton compact variant="quiet" onClick={() => setShowSetup(!showSetup)}>
@@ -614,6 +724,34 @@ const CodexRemotePanel: FC = () => {
             {statusLabel[state.status]}
           </div>
         </div>
+
+        <PanelSectionRow>
+          <div className="codexRemoteSection">
+            <div className="codexRemoteSectionHeader">
+              <div>
+                <div className="codexRemoteEyebrow">Chat</div>
+                <div className="codexRemoteThread">{state.thread}</div>
+              </div>
+              <CodexButton compact variant="quiet" onClick={() => setShowChats(!showChats)}>
+                {showChats ? "Close" : "Change"}
+              </CodexButton>
+            </div>
+            {showChats && (
+              <div className="codexRemoteChatList">
+                {visibleThreads.map((thread) => (
+                  <ChatItem
+                    key={thread.id}
+                    thread={thread}
+                    onSelect={() => runSelectThread(thread.id)}
+                  />
+                ))}
+                {!visibleThreads.length && (
+                  <div className="codexRemoteMessage codexRemoteMessageDim">No Codex chats found.</div>
+                )}
+              </div>
+            )}
+          </div>
+        </PanelSectionRow>
 
         {setupOpen && (
           <div className="codexRemoteSetup">
@@ -708,10 +846,6 @@ const CodexRemotePanel: FC = () => {
 
         <PanelSectionRow>
           <div className="codexRemoteWork">
-            <div className="codexRemoteThreadLine">
-              <span className={`codexRemoteDot ${statusClass[state.status]}`} />
-              <span className="codexRemoteThread">{state.thread}</span>
-            </div>
             <div>
               <div className="codexRemoteEyebrow">Current task</div>
               <div className="codexRemoteTask">{state.task}</div>

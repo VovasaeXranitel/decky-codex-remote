@@ -24,6 +24,8 @@ DEFAULT_SETTINGS = {
 DISCONNECTED_STATE = {
     "status": "disconnected",
     "thread": "Decky remote",
+    "threadId": "",
+    "threads": [],
     "task": "Configure Codex App Server connection",
     "messages": [
         "Open settings and enter your PC host, port, and Codex App Server token.",
@@ -133,6 +135,10 @@ class Plugin:
     async def send_action(self, action: str, payload: str | None = None) -> dict[str, Any]:
         Plugin._client.configure(Plugin._read_settings(self))
         return Plugin._client.send_action(action, payload)
+
+    async def select_thread(self, thread_id: str) -> dict[str, Any]:
+        Plugin._client.configure(Plugin._read_settings(self))
+        return Plugin._client.select_thread(thread_id)
 
     def _local_ipv4_prefixes(self) -> list[str]:
         prefixes = set()

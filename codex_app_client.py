@@ -30,6 +30,8 @@ class CodexAppClient:
         self._last_state: dict[str, Any] = {
             "status": "disconnected",
             "thread": "Decky remote",
+            "threadId": "",
+            "threads": [],
             "task": "Configure Codex App Server connection",
             "messages": ["Enter your Codex App Server host, port, and token."],
         }
@@ -111,6 +113,19 @@ class CodexAppClient:
         self._refresh_snapshot()
         return self.state()
 
+    def select_thread(self, thread_id: str) -> dict[str, Any]:
+        self.connect()
+        selected_id = str(thread_id or "").strip()
+        if not selected_id:
+            self._add_message("No chat selected.")
+            return self.state()
+        with self._lock:
+            self._active_thread_id = selected_id
+            self._active_turn_id = None
+            self._pending_approval = None
+        self._refresh_snapshot()
+        return self.state()
+
     def account(self) -> dict[str, Any]:
         result = self.connect()
         if not result["ok"]:
@@ -159,6 +174,8 @@ class CodexAppClient:
                     self._last_state = {
                         "status": "disconnected",
                         "thread": "Decky remote",
+                        "threadId": "",
+                        "threads": [],
                         "task": "Codex App Server is not reachable",
                         "messages": [self._error],
                     }
@@ -316,17 +333,18 @@ class CodexAppClient:
         try:
             loaded = self._rpc("thread/loaded/list", {"limit": 10}, timeout=4)
             loaded_ids = loaded.get("data") or []
+            listed = self._rpc("thread/list", {"limit": 8, "archived": False, "sortKey": "updated_at", "sortDirection": "desc"}, timeout=5)
+            threads = listed.get("data") or []
+            summaries = self._thread_summaries(threads, loaded_ids)
             thread_id = self._active_thread_id or (loaded_ids[0] if loaded_ids else None)
-            if not thread_id:
-                listed = self._rpc("thread/list", {"limit": 5, "archived": False, "sortKey": "updated_at", "sortDirection": "desc"}, timeout=5)
-                threads = listed.get("data") or []
-                with self._lock:
-                    self._threads = threads
-                thread_id = threads[0].get("id") if threads else None
+            if not thread_id and threads:
+                thread_id = threads[0].get("id")
             if not thread_id:
                 self._last_state = {
                     "status": "idle",
                     "thread": "No threads",
+                    "threadId": "",
+                    "threads": [],
                     "task": "Connected to Codex App Server",
                     "messages": ["No Codex threads were found."],
                 }
@@ -334,20 +352,73 @@ class CodexAppClient:
             self._active_thread_id = thread_id
             data = self._rpc("thread/read", {"threadId": thread_id, "includeTurns": True}, timeout=5)
             thread = data.get("thread") or {}
-            title = thread.get("title") or thread.get("initialUserMessage") or thread_id
+            title = self._thread_title(thread)
             status = self._status_from_thread(thread)
             self._active_turn_id = self._active_turn_id or self._find_active_turn_id(thread)
             messages = self._messages_from_thread(thread)
             if self._messages:
                 messages = (messages + self._messages)[-5:]
+            if thread_id and not any(item["id"] == thread_id for item in summaries):
+                summaries.insert(0, self._thread_summary(thread, loaded_ids))
+            summaries = [
+                {**item, "active": item["id"] == thread_id}
+                for item in summaries
+            ]
+            with self._lock:
+                self._threads = summaries
             self._last_state = {
                 "status": status,
                 "thread": str(title)[:60],
+                "threadId": thread_id,
+                "threads": summaries,
                 "task": self._task_from_thread(thread, status),
                 "messages": messages[-5:] or ["Connected to Codex App Server."],
             }
         except Exception as exc:
             self._add_message(f"Refresh failed: {exc}")
+
+    def _thread_summaries(self, threads: list[dict[str, Any]], loaded_ids: list[str]) -> list[dict[str, Any]]:
+        summaries = [self._thread_summary(thread, loaded_ids) for thread in threads if thread.get("id")]
+        loaded_missing = [thread_id for thread_id in loaded_ids if thread_id and not any(item["id"] == thread_id for item in summaries)]
+        for thread_id in loaded_missing:
+            try:
+                data = self._rpc("thread/read", {"threadId": thread_id, "includeTurns": False}, timeout=3)
+                thread = data.get("thread") or {"id": thread_id}
+            except Exception:
+                thread = {"id": thread_id, "preview": "Loaded Codex chat"}
+            summaries.insert(0, self._thread_summary(thread, loaded_ids))
+        return summaries[:8]
+
+    def _thread_summary(self, thread: dict[str, Any], loaded_ids: list[str]) -> dict[str, Any]:
+        thread_id = str(thread.get("id") or "")
+        status = self._status_from_thread(thread)
+        return {
+            "id": thread_id,
+            "title": self._thread_title(thread),
+            "status": status,
+            "active": thread_id == self._active_thread_id,
+            "loaded": thread_id in loaded_ids,
+            "updatedAt": thread.get("updatedAt") or 0,
+        }
+
+    def _thread_title(self, thread: dict[str, Any]) -> str:
+        for key in ("name", "preview"):
+            value = thread.get(key)
+            if isinstance(value, str) and value.strip():
+                return self._clean_thread_title(value)
+        cwd = thread.get("cwd")
+        if isinstance(cwd, str) and cwd.strip():
+            return os.path.basename(cwd.rstrip("/")) or cwd
+        thread_id = str(thread.get("id") or "")
+        if thread_id:
+            return f"Codex chat {thread_id[:6]}"
+        return "Untitled chat"
+
+    def _clean_thread_title(self, value: str) -> str:
+        collapsed = " ".join(value.strip().split())
+        if len(collapsed) > 72:
+            return f"{collapsed[:69]}..."
+        return collapsed
 
     def _store_approval(self, request_id: int | str, method: str, params: dict[str, Any]) -> None:
         command = params.get("command") or params.get("reason")

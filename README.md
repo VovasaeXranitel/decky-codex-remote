@@ -12,13 +12,14 @@ The plugin is designed to be account-neutral. It does not include an OpenAI API 
 - Host, port, token, and auto-refresh settings.
 - LAN scan for Codex App Server discovery.
 - ChatGPT device-code login through Codex App Server.
-- Current thread/status/task view.
+- Chat picker with user-facing Codex thread names/previews.
+- Current chat/status/task view.
 - Compact activity log.
 - Controller-friendly `Approve`, `Deny`, `Pause`, and `Reply` actions.
 - Python backend for persisted plugin settings.
 - Direct Codex App Server WebSocket JSON-RPC client in the plugin backend.
 
-The current MVP can connect to Codex App Server, list/read the active thread, send replies, interrupt an active turn, and answer App Server approval requests that are routed to this client.
+The current MVP can connect to Codex App Server, list/read/select threads, send replies, interrupt an active turn, and answer App Server approval requests that are routed to this client.
 
 ## Target Connection
 
