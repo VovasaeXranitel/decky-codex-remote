@@ -1,6 +1,7 @@
 import json
 import os
 import socket
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -93,11 +94,12 @@ class Plugin:
         port = str(settings.get("port") or "43871").strip()
         prefixes = Plugin._local_ipv4_prefixes(self)
         if not prefixes:
-            return {"ok": False, "message": "No LAN IPv4 address found.", "devices": []}
+            return {"ok": False, "message": "LAN IPv4 address not found on Steam Deck.", "devices": []}
 
-        candidates = []
+        candidates = ["127.0.0.1", "localhost"]
         for prefix in prefixes[:3]:
             candidates.extend(f"{prefix}.{index}" for index in range(1, 255))
+        candidates = sorted(set(candidates))
 
         devices: list[dict[str, str]] = []
         with ThreadPoolExecutor(max_workers=48) as executor:
@@ -111,7 +113,7 @@ class Plugin:
 
         return {
             "ok": bool(devices),
-            "message": f"Found {len(devices)} Codex server(s)." if devices else "No Codex App Server found on LAN.",
+            "message": f"Found {len(devices)} Codex server(s)." if devices else f"No Codex server on LAN port {port}. Start Codex App Server on the PC and allow it in firewall.",
             "devices": devices,
         }
 
@@ -141,7 +143,33 @@ class Plugin:
         except OSError:
             pass
 
+        for address in self._linux_ipv4_addresses():
+            parts = address.split(".")
+            if len(parts) == 4 and not address.startswith(("127.", "169.254.")):
+                prefixes.add(".".join(parts[:3]))
+
         return sorted(prefixes)
+
+    def _linux_ipv4_addresses(self) -> list[str]:
+        addresses: list[str] = []
+        commands = [
+            ["ip", "-4", "route", "show", "default"],
+            ["ip", "-4", "route", "show", "scope", "link"],
+            ["ip", "-4", "addr", "show"],
+        ]
+        for command in commands:
+            try:
+                output = subprocess.check_output(command, text=True, stderr=subprocess.DEVNULL, timeout=2)
+            except Exception:
+                continue
+            for line in output.splitlines():
+                parts = line.replace("/", " ").split()
+                for index, part in enumerate(parts):
+                    if part == "src" and index + 1 < len(parts):
+                        addresses.append(parts[index + 1])
+                    elif part == "inet" and index + 1 < len(parts):
+                        addresses.append(parts[index + 1])
+        return addresses
 
     def _probe_readyz(self, host: str, port: str) -> dict[str, str] | None:
         url = f"http://{host}:{port}/readyz"

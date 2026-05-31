@@ -1,14 +1,13 @@
-# Codex Remote v0.1.2
+# Codex Remote v0.1.3
 
-Steam Deck usability patch.
+Steam Deck readability patch.
 
 ## Highlights
 
-- Reworks the panel around native Decky button rows.
-- Removes custom/nested button layouts that were unreliable with Steam Deck focus navigation.
-- Hides approval and pause actions until they are usable.
-- Saves current settings before connect, scan, account, and login actions.
-- Keeps the panel more compact for the Decky side drawer.
+- Replaces bright Steam buttons with dark focused controls.
+- Keeps controller navigation through Decky `Focusable`.
+- Improves SteamOS LAN address discovery with `ip` route/address fallback.
+- Keeps direct LAN setup as the default path.
 
 ## Install
 

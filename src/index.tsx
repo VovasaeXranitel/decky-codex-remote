@@ -4,26 +4,14 @@ import {
   toaster,
 } from "@decky/api";
 import {
-  ButtonItem,
+  Focusable,
   PanelSection,
   PanelSectionRow,
   TextField,
   ToggleField,
 } from "@decky/ui";
 import { FC, useEffect, useMemo, useState } from "react";
-import {
-  FaCheck,
-  FaCog,
-  FaPause,
-  FaPlug,
-  FaReply,
-  FaSearch,
-  FaSignInAlt,
-  FaSync,
-  FaTimes,
-  FaUnlink,
-  FaUser,
-} from "react-icons/fa";
+import { FaTerminal } from "react-icons/fa";
 
 type CodexState = {
   status: "disconnected" | "idle" | "working" | "approval";
@@ -117,11 +105,7 @@ const styles = `
 }
 
 .codexRemoteHeader {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 4px 0 8px;
+  padding: 2px 0 8px;
 }
 
 .codexRemoteTitle,
@@ -139,10 +123,23 @@ const styles = `
   letter-spacing: 0;
 }
 
+.codexRemoteEndpoint {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .codexRemoteSettings {
   border-bottom: 1px solid #2a2a2a;
   margin-bottom: 8px;
   padding-bottom: 8px;
+}
+
+.codexRemoteCompact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .codexRemoteThread {
@@ -177,9 +174,60 @@ const styles = `
 }
 
 .codexRemoteTask {
-  border-top: 1px solid #2a2a2a;
   overflow-wrap: anywhere;
-  padding-top: 10px;
+}
+
+.codexRemoteButtonGrid {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.codexRemoteButtonGridSingle {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: 1fr;
+}
+
+.codexRemoteButton {
+  align-items: center;
+  background: #1b2028;
+  border: 1px solid #313844;
+  border-radius: 4px;
+  color: #d6d9df;
+  display: flex;
+  font-size: 12px;
+  font-weight: 500;
+  justify-content: center;
+  letter-spacing: 0;
+  line-height: 1.15;
+  min-height: 32px;
+  padding: 5px 8px;
+  text-align: center;
+  width: 100%;
+}
+
+.codexRemoteButton:active {
+  background: #252c36;
+  border-color: #4a5362;
+}
+
+.codexRemoteButtonFocus,
+.codexRemoteButton:focus {
+  background: #242b35;
+  border-color: #7a879a;
+  box-shadow: inset 0 0 0 1px #7a879a;
+  color: #f1f3f6;
+}
+
+.codexRemoteButtonDisabled {
+  color: #6e7480;
+  opacity: 0.55;
+}
+
+.codexRemoteButtonGrid .codexRemoteButton,
+.codexRemoteButtonGridSingle .codexRemoteButton {
+  width: 100%;
 }
 
 .codexRemoteLog {
@@ -229,6 +277,31 @@ const styles = `
   min-height: 38px;
 }
 `;
+
+type CodexButtonProps = {
+  children: string;
+  disabled?: boolean;
+  onClick: () => void;
+};
+
+const CodexButton: FC<CodexButtonProps> = ({ children, disabled = false, onClick }) => {
+  const activate = () => {
+    if (!disabled) {
+      onClick();
+    }
+  };
+
+  return (
+    <Focusable
+      className={`codexRemoteButton${disabled ? " codexRemoteButtonDisabled" : ""}`}
+      focusClassName="codexRemoteButtonFocus"
+      onActivate={activate}
+      onClick={activate}
+    >
+      {children}
+    </Focusable>
+  );
+};
 
 const CodexRemotePanel: FC = () => {
   const [state, setState] = useState<CodexState>(defaultState);
@@ -402,13 +475,12 @@ const CodexRemotePanel: FC = () => {
         </div>
 
         <PanelSectionRow>
-          <ButtonItem
-            icon={<FaCog />}
-            layout="inline"
-            onClick={() => setShowSettings(!showSettings)}
-          >
-            {showSettings ? "Готово" : "Настройки"}
-          </ButtonItem>
+          <div className="codexRemoteButtonGrid">
+            <CodexButton onClick={() => setShowSettings(!showSettings)}>
+              {showSettings ? "Скрыть настройки" : "Настройки"}
+            </CodexButton>
+            <CodexButton onClick={refreshState}>Обновить</CodexButton>
+          </div>
         </PanelSectionRow>
 
         {showSettings && (
@@ -423,15 +495,15 @@ const CodexRemotePanel: FC = () => {
               />
             </PanelSectionRow>
             <PanelSectionRow>
-              <ButtonItem icon={<FaSearch />} layout="inline" onClick={runScanLan}>
-                Найти Codex в сети
-              </ButtonItem>
+              <div className="codexRemoteButtonGridSingle">
+                <CodexButton onClick={runScanLan}>Найти Codex в LAN</CodexButton>
+              </div>
             </PanelSectionRow>
             {devices.map((device) => (
               <PanelSectionRow key={`${device.host}:${device.port}`}>
-                <ButtonItem layout="inline" onClick={() => selectDevice(device)}>
-                  {device.label}
-                </ButtonItem>
+                <div className="codexRemoteButtonGridSingle">
+                  <CodexButton onClick={() => selectDevice(device)}>{device.label}</CodexButton>
+                </div>
               </PanelSectionRow>
             ))}
             <PanelSectionRow>
@@ -463,19 +535,15 @@ const CodexRemotePanel: FC = () => {
               />
             </PanelSectionRow>
             <PanelSectionRow>
-              <ButtonItem icon={<FaPlug />} layout="inline" onClick={runConnect}>
-                Подключиться
-              </ButtonItem>
+              <div className="codexRemoteButtonGrid">
+                <CodexButton onClick={runConnect}>Подключить</CodexButton>
+                <CodexButton onClick={runDisconnect}>Отключить</CodexButton>
+              </div>
             </PanelSectionRow>
             <PanelSectionRow>
-              <ButtonItem icon={<FaUnlink />} layout="inline" onClick={runDisconnect}>
-                Отключиться
-              </ButtonItem>
-            </PanelSectionRow>
-            <PanelSectionRow>
-              <ButtonItem icon={<FaSync />} layout="inline" onClick={runConnectionTest}>
-                Проверить сервер
-              </ButtonItem>
+              <div className="codexRemoteButtonGridSingle">
+                <CodexButton onClick={runConnectionTest}>Проверить сервер</CodexButton>
+              </div>
             </PanelSectionRow>
             {connectionMessage && (
               <PanelSectionRow>
@@ -483,14 +551,10 @@ const CodexRemotePanel: FC = () => {
               </PanelSectionRow>
             )}
             <PanelSectionRow>
-              <ButtonItem icon={<FaSignInAlt />} layout="inline" onClick={runChatGptLogin}>
-                Войти в ChatGPT
-              </ButtonItem>
-            </PanelSectionRow>
-            <PanelSectionRow>
-              <ButtonItem icon={<FaUser />} layout="inline" onClick={runGetAccount}>
-                Аккаунт
-              </ButtonItem>
+              <div className="codexRemoteButtonGrid">
+                <CodexButton onClick={runChatGptLogin}>ChatGPT login</CodexButton>
+                <CodexButton onClick={runGetAccount}>Аккаунт</CodexButton>
+              </div>
             </PanelSectionRow>
             {login?.verificationUrl && login?.userCode && (
               <PanelSectionRow>
@@ -510,17 +574,16 @@ const CodexRemotePanel: FC = () => {
         )}
 
         <PanelSectionRow>
-          <div className="codexRemoteThread">
-            <span className={`codexRemoteDot ${statusClass[state.status]}`} />
-            <span className="codexRemoteRow">{state.thread}</span>
-            <span className="codexRemoteMuted">{statusLabel[state.status]}</span>
-          </div>
-        </PanelSectionRow>
-
-        <PanelSectionRow>
-          <div className="codexRemoteTask">
-            <div className="codexRemoteMuted">Текущая задача</div>
-            <div>{state.task}</div>
+          <div className="codexRemoteCompact">
+            <div className="codexRemoteThread">
+              <span className={`codexRemoteDot ${statusClass[state.status]}`} />
+              <span className="codexRemoteRow">{state.thread}</span>
+              <span className="codexRemoteMuted">{statusLabel[state.status]}</span>
+            </div>
+            <div className="codexRemoteTask">
+              <div className="codexRemoteMuted">Текущая задача</div>
+              <div>{state.task}</div>
+            </div>
           </div>
         </PanelSectionRow>
 
@@ -546,14 +609,14 @@ const CodexRemotePanel: FC = () => {
         {state.approvalText && (
           <>
             <PanelSectionRow>
-              <ButtonItem icon={<FaCheck />} layout="inline" onClick={() => runAction("approve")}>
-                Разрешить
-              </ButtonItem>
+              <div className="codexRemoteButtonGridSingle">
+                <CodexButton onClick={() => runAction("approve")}>Разрешить</CodexButton>
+              </div>
             </PanelSectionRow>
             <PanelSectionRow>
-              <ButtonItem icon={<FaTimes />} layout="inline" onClick={() => runAction("deny")}>
-                Отклонить
-              </ButtonItem>
+              <div className="codexRemoteButtonGridSingle">
+                <CodexButton onClick={() => runAction("deny")}>Отклонить</CodexButton>
+              </div>
             </PanelSectionRow>
           </>
         )}
@@ -568,15 +631,17 @@ const CodexRemotePanel: FC = () => {
           </div>
         </PanelSectionRow>
         <PanelSectionRow>
-          <ButtonItem icon={<FaReply />} layout="inline" onClick={() => runAction("reply", reply)} disabled={!reply.trim()}>
-            Отправить
-          </ButtonItem>
+          <div className="codexRemoteButtonGridSingle">
+            <CodexButton onClick={() => runAction("reply", reply)} disabled={!reply.trim()}>
+              Отправить
+            </CodexButton>
+          </div>
         </PanelSectionRow>
         {state.status === "working" && (
           <PanelSectionRow>
-            <ButtonItem icon={<FaPause />} layout="inline" onClick={() => runAction("pause")}>
-              Пауза
-            </ButtonItem>
+            <div className="codexRemoteButtonGridSingle">
+              <CodexButton onClick={() => runAction("pause")}>Пауза</CodexButton>
+            </div>
           </PanelSectionRow>
         )}
         {actionMessage && (
@@ -599,6 +664,6 @@ export default definePlugin(() => {
     name: "Codex Remote",
     titleView: <div className="codexRemotePluginTitle">Codex</div>,
     content: <CodexRemotePanel />,
-    icon: <FaCheck />,
+    icon: <FaTerminal />,
   };
 });

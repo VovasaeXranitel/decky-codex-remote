@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.3 - 2026-05-31
+
+Fix Steam Deck panel readability.
+
+- Replace bright Steam `Button` controls with dark custom `Focusable` controls.
+- Keep gamepad focus behavior without white button backgrounds.
+- Improve LAN scanner address discovery on SteamOS using `ip` route/address fallbacks.
+- Add localhost candidates to discovery for local development paths.
+
 ## 0.1.2 - 2026-05-31
 
 Improve Steam Deck usability.
