@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.20 - 2026-05-31
+
+Make the panel smarter and closer to a real Codex remote client.
+
+- Add searchable chat picker with loaded-chat markers.
+- Add compact quick commands: Continue, Explain, Retry, and Summary.
+- Fold approval text, command details, Approve, and Deny into one focused action card.
+- Derive the current task from the latest Codex transcript item instead of a generic status string.
+- Keep the existing auto-scroll transcript behavior.
+
 ## 0.1.19 - 2026-05-31
 
 Auto-scroll transcript to the latest item.

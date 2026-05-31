@@ -540,8 +540,31 @@ class CodexAppClient:
         if self._pending_approval:
             return self._pending_approval.get("text") or "Approval needed"
         if status == "working":
+            active_item = self._latest_transcript_item(thread, {"command", "tool", "assistant", "plan", "reasoning"})
+            if active_item:
+                title = active_item.get("title") or "Codex"
+                body = self._one_line(active_item.get("body") or "")
+                return f"{title}: {body}" if body else f"{title} is running"
             return "Codex is working"
+        latest_item = self._latest_transcript_item(thread, {"assistant", "command", "tool", "file", "plan", "user"})
+        if latest_item:
+            title = latest_item.get("title") or "Codex"
+            body = self._one_line(latest_item.get("body") or "")
+            if body:
+                return f"Last: {title} - {body}"
         return "Connected to Codex App Server"
+
+    def _latest_transcript_item(self, thread: dict[str, Any], kinds: set[str]) -> dict[str, Any] | None:
+        for turn in reversed(thread.get("turns") or []):
+            for item in reversed(turn.get("items") or []):
+                transcript_item = self._transcript_item(item)
+                if transcript_item and transcript_item.get("kind") in kinds and transcript_item.get("body"):
+                    return transcript_item
+        return None
+
+    def _one_line(self, value: str) -> str:
+        cleaned = " ".join(str(value).split())
+        return self._truncate(cleaned, 110)
 
     def _find_active_turn_id(self, thread: dict[str, Any]) -> str | None:
         for turn in reversed(thread.get("turns") or []):

@@ -1,15 +1,14 @@
-# Codex Remote v0.1.19
+# Codex Remote v0.1.20
 
-Auto-scroll transcript tail.
+Smarter Deck panel controls.
 
 ## Highlights
 
-- Automatically keeps the transcript pinned to the latest message.
-- Updates the scroll position during refreshes and streaming text growth.
-- Removes custom D-pad transcript scroll interception.
-- Avoids relying on Steam Deck scrollbar activation.
-- Keeps the transcript inside Decky's native scroll components.
-- Keeps the v0.1.14 structured transcript cards and streaming behavior.
+- Adds a searchable chat picker with loaded-chat markers.
+- Adds quick commands for Continue, Explain, Retry, and Summary.
+- Turns approvals into one focused card with command details and Approve/Deny actions.
+- Shows a more useful current task derived from the latest Codex event.
+- Keeps transcript auto-scroll and structured cards for messages, commands, tools, files, approvals, and errors.
 - Verified through package build and Python backend checks.
 
 ## Install

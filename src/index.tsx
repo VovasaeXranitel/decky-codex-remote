@@ -261,6 +261,21 @@ const styles = `
   grid-template-columns: 1fr;
 }
 
+.codexRemoteQuickGrid {
+  display: grid;
+  gap: 7px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.codexRemoteComposer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+}
+
 .codexRemoteButton {
   align-items: center;
   background: #171b22;
@@ -346,8 +361,13 @@ const styles = `
 .codexRemoteSectionHeader {
   align-items: center;
   display: flex;
+  gap: 10px;
   justify-content: space-between;
   margin-bottom: 7px;
+}
+
+.codexRemoteChatSearch {
+  margin-bottom: 8px;
 }
 
 .codexRemoteChatList {
@@ -367,6 +387,13 @@ const styles = `
   min-height: 38px;
   min-width: 0;
   padding: 7px 9px;
+}
+
+.codexRemoteChatMeta {
+  color: #8d93a0;
+  flex: 0 0 auto;
+  font-size: 10px;
+  margin-left: auto;
 }
 
 .codexRemoteChatItemActive {
@@ -563,6 +590,25 @@ const styles = `
   padding: 9px;
 }
 
+.codexRemoteApprovalTop {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.codexRemoteApprovalTitle {
+  color: #f0f0f1;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.codexRemoteApprovalActions {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .codexRemoteSetup {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   margin-bottom: 7px;
@@ -622,6 +668,15 @@ const styles = `
 
 .codexRemoteTextArea .DialogLabel {
   color: #9297a1 !important;
+}
+
+.codexRemoteChatSearch input,
+.codexRemoteChatSearch .DialogInput {
+  background: #12161d !important;
+  border: 1px solid #2b323d !important;
+  box-shadow: none !important;
+  color: #d7dae0 !important;
+  min-height: 34px !important;
 }
 `;
 
@@ -690,6 +745,7 @@ const ChatItem: FC<ChatItemProps> = ({ thread, onSelect }) => {
     >
       <span className={`codexRemoteDot ${statusClass[thread.status] || statusClass.idle}`} />
       <span className="codexRemoteChatTitle">{thread.title}</span>
+      {thread.loaded && <span className="codexRemoteChatMeta">loaded</span>}
     </Focusable>
   );
 };
@@ -736,6 +792,7 @@ const CodexRemotePanel: FC = () => {
   const [showChats, setShowChats] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [chatQuery, setChatQuery] = useState("");
   const [connectionMessage, setConnectionMessage] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const [devices, setDevices] = useState<DiscoveredDevice[]>([]);
@@ -748,7 +805,16 @@ const CodexRemotePanel: FC = () => {
     [settings.host, settings.port],
   );
   const setupOpen = showSetup || state.status === "disconnected";
-  const visibleThreads = state.threads.length ? state.threads.slice(0, 5) : [];
+  const normalizedChatQuery = chatQuery.trim().toLowerCase();
+  const visibleThreads = state.threads
+    .filter((thread) => !normalizedChatQuery || thread.title.toLowerCase().includes(normalizedChatQuery))
+    .slice(0, 8);
+  const quickActions = [
+    { label: "Continue", prompt: "Continue from the current task. Keep going without asking for more unless you are blocked." },
+    { label: "Explain", prompt: "Explain what you are doing now and what the next step is." },
+    { label: "Retry", prompt: "Retry the last failed step. If it needs a different approach, choose it and continue." },
+    { label: "Summary", prompt: "Summarize the current progress, open risks, and the next concrete action." },
+  ];
   const transcript = state.transcript?.length
     ? state.transcript
     : state.messages.map((message, index) => ({
@@ -958,17 +1024,26 @@ const CodexRemotePanel: FC = () => {
               </CodexButton>
             </div>
             {showChats && (
-              <div className="codexRemoteChatList">
-                {visibleThreads.map((thread) => (
-                  <ChatItem
-                    key={thread.id}
-                    thread={thread}
-                    onSelect={() => runSelectThread(thread.id)}
+              <div>
+                <div className="codexRemoteChatSearch">
+                  <TextField
+                    label="Find chat"
+                    value={chatQuery}
+                    onChange={(event) => setChatQuery(event.target.value)}
                   />
-                ))}
-                {!visibleThreads.length && (
-                  <div className="codexRemoteMessage codexRemoteMessageDim">No Codex chats found.</div>
-                )}
+                </div>
+                <div className="codexRemoteChatList">
+                  {visibleThreads.map((thread) => (
+                    <ChatItem
+                      key={thread.id}
+                      thread={thread}
+                      onSelect={() => runSelectThread(thread.id)}
+                    />
+                  ))}
+                  {!visibleThreads.length && (
+                    <div className="codexRemoteMessage codexRemoteMessageDim">No matching Codex chats.</div>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -1077,18 +1152,19 @@ const CodexRemotePanel: FC = () => {
         {state.approvalText && (
           <PanelSectionRow>
             <div className="codexRemoteApproval">
-              <div className="codexRemoteEyebrow">Approval request</div>
+              <div className="codexRemoteApprovalTop">
+                <div>
+                  <div className="codexRemoteEyebrow">Action needed</div>
+                  <div className="codexRemoteApprovalTitle">Approval request</div>
+                </div>
+                <span className={`codexRemoteDot ${statusClass.approval}`} />
+              </div>
               <div className="codexRemoteMessage">{state.approvalText}</div>
               {state.command && <code>{state.command}</code>}
-            </div>
-          </PanelSectionRow>
-        )}
-
-        {state.approvalText && (
-          <PanelSectionRow>
-            <div className="codexRemoteActionGrid">
-              <CodexButton variant="primary" onClick={() => runAction("approve")}>Approve</CodexButton>
-              <CodexButton variant="danger" onClick={() => runAction("deny")}>Deny</CodexButton>
+              <div className="codexRemoteApprovalActions">
+                <CodexButton compact variant="primary" onClick={() => runAction("approve")}>Approve</CodexButton>
+                <CodexButton compact variant="danger" onClick={() => runAction("deny")}>Deny</CodexButton>
+              </div>
             </div>
           </PanelSectionRow>
         )}
@@ -1122,27 +1198,40 @@ const CodexRemotePanel: FC = () => {
         </PanelSectionRow>
 
         <PanelSectionRow>
-          <div className="codexRemoteTextArea">
-            <TextField
-              label="Message"
-              value={reply}
-              onChange={(event) => setReply(event.target.value)}
-            />
-          </div>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <div className="codexRemoteActionGrid">
-            <CodexButton compact variant="primary" onClick={() => runAction("reply", reply)} disabled={!reply.trim()}>
-              Send
-            </CodexButton>
-            <CodexButton
-              compact
-              variant="quiet"
-              onClick={() => runAction("pause")}
-              disabled={state.status !== "working"}
-            >
-              Pause
-            </CodexButton>
+          <div className="codexRemoteComposer">
+            <div className="codexRemoteQuickGrid">
+              {quickActions.map((action) => (
+                <CodexButton
+                  key={action.label}
+                  compact
+                  variant="quiet"
+                  onClick={() => runAction("reply", action.prompt)}
+                  disabled={state.status === "disconnected" || !state.threadId}
+                >
+                  {action.label}
+                </CodexButton>
+              ))}
+            </div>
+            <div className="codexRemoteTextArea">
+              <TextField
+                label="Message"
+                value={reply}
+                onChange={(event) => setReply(event.target.value)}
+              />
+            </div>
+            <div className="codexRemoteActionGrid">
+              <CodexButton compact variant="primary" onClick={() => runAction("reply", reply)} disabled={!reply.trim()}>
+                Send
+              </CodexButton>
+              <CodexButton
+                compact
+                variant="quiet"
+                onClick={() => runAction("pause")}
+                disabled={state.status !== "working"}
+              >
+                Pause
+              </CodexButton>
+            </div>
           </div>
         </PanelSectionRow>
         {actionMessage && (
