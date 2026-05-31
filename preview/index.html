@@ -7,15 +7,14 @@
     <style>
       :root {
         color-scheme: dark;
-        font-family:
-          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-          "Segoe UI", sans-serif;
-        background: #080808;
-        color: #d8d8d8;
+        font-family: Motiva Sans, Inter, ui-sans-serif, system-ui, sans-serif;
+        background: #090b10;
+        color: #d7d7d9;
       }
 
       * {
         box-sizing: border-box;
+        letter-spacing: 0;
       }
 
       body {
@@ -29,408 +28,212 @@
         font: inherit;
       }
 
-      .deck {
-        align-items: center;
-        background:
-          linear-gradient(90deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.62)),
-          #111;
-        display: flex;
-        height: 100vh;
-        justify-content: center;
-        padding: 18px;
-      }
-
       .screen {
-        aspect-ratio: 16 / 9;
-        background: #0b0b0b;
-        border: 1px solid #242424;
-        border-radius: 12px;
-        box-shadow: 0 22px 80px rgba(0, 0, 0, 0.46);
-        max-height: calc(100vh - 36px);
-        max-width: calc(100vw - 36px);
+        background:
+          linear-gradient(120deg, rgba(20, 26, 36, 0.92), rgba(14, 16, 21, 0.94)),
+          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 34px);
+        height: 100vh;
         overflow: hidden;
         position: relative;
-        width: min(1280px, calc(100vw - 36px));
+        width: 100vw;
       }
 
       .game {
-        background:
-          linear-gradient(130deg, rgba(17, 20, 24, 0.96), rgba(21, 24, 23, 0.92)),
-          repeating-linear-gradient(
-            0deg,
-            rgba(255, 255, 255, 0.025) 0,
-            rgba(255, 255, 255, 0.025) 1px,
-            transparent 1px,
-            transparent 34px
-          );
-        height: 100%;
-        position: absolute;
-        width: 100%;
-      }
-
-      .game::before {
-        background:
-          linear-gradient(180deg, rgba(216, 216, 216, 0.08), transparent),
-          #141414;
         border: 1px solid rgba(255, 255, 255, 0.08);
-        content: "";
-        height: 44%;
-        left: 9%;
+        height: 42%;
+        left: 7%;
+        opacity: 0.55;
         position: absolute;
-        top: 18%;
-        transform: skewX(-8deg);
+        top: 20%;
+        transform: skewX(-7deg);
         width: 42%;
       }
 
-      .game::after {
-        border-bottom: 2px solid rgba(255, 255, 255, 0.09);
-        border-top: 2px solid rgba(255, 255, 255, 0.08);
-        content: "";
-        height: 18%;
-        left: 11%;
-        position: absolute;
-        top: 70%;
-        width: 48%;
-      }
-
-      .veil {
-        background: rgba(0, 0, 0, 0.34);
+      .shade {
+        background: rgba(0, 0, 0, 0.36);
         height: 100%;
         position: absolute;
         width: 100%;
       }
 
       .quick-access {
-        background: #0f0f0f;
-        border-left: 1px solid #2a2a2a;
-        box-shadow: -22px 0 56px rgba(0, 0, 0, 0.42);
-        display: flex;
-        flex-direction: column;
+        background: #10131a;
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: -22px 0 60px rgba(0, 0, 0, 0.5);
+        color: #d7d7d9;
         height: 100%;
         padding: 18px 16px;
         position: absolute;
         right: 0;
         top: 0;
-        width: 36%;
-      }
-
-      .header {
-        align-items: center;
-        display: flex;
-        justify-content: space-between;
-        padding-bottom: 13px;
+        width: 360px;
       }
 
       .title {
-        color: #f0f0f0;
-        font-size: 15px;
-        font-weight: 600;
-      }
-
-      .status {
-        align-items: center;
-        color: #8a8a8a;
-        display: flex;
-        font-size: 12px;
-        gap: 7px;
-      }
-
-      .dot {
-        background: #58a66c;
-        border-radius: 999px;
-        height: 7px;
-        width: 7px;
-      }
-
-      .thread {
-        align-items: center;
-        border-bottom: 1px solid #242424;
-        border-top: 1px solid #242424;
-        color: #d8d8d8;
-        display: flex;
-        font-size: 13px;
-        justify-content: space-between;
-        min-height: 39px;
-      }
-
-      .thread span:last-child {
-        color: #777;
-      }
-
-      .main {
-        display: flex;
-        flex: 1;
-        flex-direction: column;
-        gap: 14px;
-        min-height: 0;
-        padding: 15px 0;
-      }
-
-      .label {
-        color: #888;
-        font-size: 11px;
-        margin-bottom: 4px;
-      }
-
-      .task {
-        color: #e4e4e4;
+        color: #f1f1f2;
         font-size: 14px;
-        line-height: 1.35;
+        font-weight: 600;
+        margin-bottom: 2px;
       }
 
-      .log {
-        display: flex;
-        flex-direction: column;
-        gap: 9px;
-        overflow: auto;
-        padding-right: 3px;
-      }
-
-      .msg {
-        color: #d0d0d0;
-        font-size: 12px;
-        line-height: 1.35;
-      }
-
-      .approval {
-        background: #171717;
-        border: 1px solid #343434;
-        border-radius: 7px;
-        color: #e7e7e7;
-        display: flex;
-        flex-direction: column;
-        font-size: 13px;
-        gap: 9px;
-        padding: 10px;
-      }
-
-      code {
-        background: #0b0b0b;
-        border: 1px solid #2a2a2a;
-        border-radius: 5px;
-        color: #d8d8d8;
-        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      .endpoint,
+      .muted {
+        color: #8f9298;
         font-size: 11px;
-        padding: 8px;
       }
 
-      .composer {
-        border-top: 1px solid #242424;
-        display: flex;
-        flex-direction: column;
-        gap: 9px;
-        padding-top: 13px;
+      .endpoint {
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
-      input {
-        background: #171717;
-        border: 1px solid #343434;
-        border-radius: 7px;
-        color: #e6e6e6;
-        outline: none;
-        padding: 10px 11px;
-        width: 100%;
+      .row {
+        margin-top: 10px;
       }
 
-      input:focus,
-      button:focus-visible {
-        border-color: #6c6c6c;
-        outline: 1px solid #6c6c6c;
-      }
-
-      .actions {
+      .grid {
         display: grid;
-        gap: 8px;
+        gap: 6px;
         grid-template-columns: 1fr 1fr;
+      }
+
+      .single {
+        display: grid;
+        gap: 6px;
+        grid-template-columns: 1fr;
       }
 
       button {
         align-items: center;
-        background: #202020;
-        border: 1px solid #343434;
-        border-radius: 7px;
-        color: #e6e6e6;
-        cursor: pointer;
-        display: inline-flex;
+        background: #171b22;
+        border: 1px solid #323844;
+        border-radius: 4px;
+        color: #d5d8de;
+        display: flex;
+        font-size: 12px;
+        font-weight: 500;
         justify-content: center;
-        min-height: 39px;
-        padding: 0 10px;
+        line-height: 1.15;
+        min-height: 31px;
+        padding: 5px 8px;
+        width: 100%;
       }
 
-      button:hover {
-        background: #292929;
+      button:focus-visible {
+        background: #242b36;
+        border-color: #8c98aa;
+        box-shadow: inset 0 0 0 1px #8c98aa;
+        color: #f3f4f7;
+        outline: 0;
       }
 
-      button:disabled {
-        color: #666;
-        cursor: default;
+      input {
+        background: #171b22;
+        border: 1px solid #323844;
+        border-radius: 4px;
+        color: #d5d8de;
+        min-height: 33px;
+        outline: 0;
+        padding: 6px 8px;
+        width: 100%;
       }
 
-      .primary {
-        background: #d8d8d8;
-        border-color: #d8d8d8;
-        color: #111;
+      label {
+        color: #a5a8af;
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        margin: 8px 0 4px;
+        text-transform: uppercase;
       }
 
-      .primary:hover {
-        background: #f0f0f0;
+      .settings {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        margin: 10px 0 8px;
+        padding-bottom: 8px;
       }
 
-      .tools {
-        display: grid;
+      .status {
+        align-items: center;
+        display: flex;
         gap: 8px;
-        grid-template-columns: repeat(3, 1fr);
+        margin-top: 12px;
+        min-height: 24px;
       }
 
-      @media (max-width: 820px) {
-        .quick-access {
-          width: 44%;
-        }
+      .dot {
+        background: #5fb878;
+        border-radius: 50%;
+        height: 7px;
+        width: 7px;
+      }
+
+      .task,
+      .message {
+        color: #d7d7d9;
+        font-size: 12px;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+      }
+
+      .messages {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
       }
     </style>
   </head>
   <body>
-    <main class="deck">
-      <section class="screen" aria-label="Steam Deck screen preview">
-        <div class="game"></div>
-        <div class="veil"></div>
-        <aside class="quick-access" aria-label="Codex Remote panel">
-          <header class="header">
-            <div class="title">Codex</div>
-            <div class="status"><span class="dot"></span><span id="status">working</span></div>
-          </header>
+    <main class="screen">
+      <div class="game"></div>
+      <div class="shade"></div>
+      <aside class="quick-access" aria-label="Codex Remote panel">
+        <div class="title">Codex</div>
+        <div class="endpoint">ws://192.168.1.81:43871</div>
 
-          <div class="thread">
-            <span id="thread">Decky remote</span>
-            <span>›</span>
+        <div class="row grid">
+          <button>Hide Settings</button>
+          <button>Refresh</button>
+        </div>
+
+        <section class="settings">
+          <label for="host">Host</label>
+          <input id="host" value="192.168.1.81" />
+          <div class="row single"><button>Scan LAN</button></div>
+          <label for="port">Port</label>
+          <input id="port" value="43871" />
+          <label for="token">Token</label>
+          <input id="token" value="••••••••••••••••" />
+          <div class="row grid">
+            <button>Connect</button>
+            <button>Disconnect</button>
           </div>
+          <div class="row single"><button>Check Server</button></div>
+          <div class="row message">Found 1 Codex server(s).</div>
+        </section>
 
-          <section class="main">
-            <div>
-              <div class="label">Current</div>
-              <div class="task" id="task">Create Decky plugin MVP</div>
-            </div>
-
-            <div class="log" id="log"></div>
-
-            <div class="approval" id="approval">
-              <div id="approvalText">Run build command?</div>
-              <code id="command">pnpm run build</code>
-            </div>
-          </section>
-
-          <footer class="composer">
-            <input id="reply" placeholder="Message Codex" />
-            <div class="actions">
-              <button class="primary" id="approve">Approve</button>
-              <button id="deny">Deny</button>
-            </div>
-            <div class="tools">
-              <button id="pause">Pause</button>
-              <button id="refresh">Refresh</button>
-              <button id="reset">Reset</button>
-            </div>
-          </footer>
-        </aside>
-      </section>
+        <section>
+          <div class="status">
+            <span class="dot"></span>
+            <span>Decky remote</span>
+            <span class="muted">working</span>
+          </div>
+          <div class="row task">
+            <div class="muted">Current task</div>
+            <div>Fix LAN discovery and clean the Steam Deck panel UI.</div>
+          </div>
+          <div class="row messages">
+            <div class="message">Codex App Server is reachable.</div>
+            <div class="message">LAN scan returned 192.168.1.81:43871.</div>
+            <div class="message">Ready for remote actions.</div>
+          </div>
+          <label for="message">Message</label>
+          <input id="message" value="" />
+          <div class="row single"><button>Send</button></div>
+        </section>
+      </aside>
     </main>
-
-    <script>
-      const initialState = {
-        status: "working",
-        thread: "Decky remote",
-        task: "Create Decky plugin MVP",
-        approvalText: "Run build command?",
-        command: "pnpm run build",
-        messages: [
-          "Decky UI scaffold is built.",
-          "Settings backend is ready.",
-          "Approval needed: run pnpm build",
-        ],
-      };
-
-      let state = structuredClone(initialState);
-
-      const $ = (id) => document.getElementById(id);
-
-      function push(message) {
-        state.messages.push(message);
-        state.messages = state.messages.slice(-5);
-      }
-
-      function render() {
-        $("status").textContent = state.status;
-        $("thread").textContent = state.thread;
-        $("task").textContent = state.task;
-        $("log").innerHTML = state.messages
-          .map((message) => `<div class="msg">${message}</div>`)
-          .join("");
-
-        const needsApproval = Boolean(state.approvalText);
-        $("approval").style.display = needsApproval ? "flex" : "none";
-        $("approve").disabled = !needsApproval;
-        $("deny").disabled = !needsApproval;
-
-        if (needsApproval) {
-          $("approvalText").textContent = state.approvalText;
-          $("command").textContent = state.command || "";
-        }
-      }
-
-      $("approve").addEventListener("click", () => {
-        push("Approved from Steam Deck.");
-        state.status = "working";
-        state.task = "Running build command";
-        delete state.approvalText;
-        delete state.command;
-        render();
-      });
-
-      $("deny").addEventListener("click", () => {
-        push("Denied from Steam Deck.");
-        state.status = "idle";
-        state.task = "Waiting for next instruction";
-        delete state.approvalText;
-        delete state.command;
-        render();
-      });
-
-      $("pause").addEventListener("click", () => {
-        push("Paused from Steam Deck.");
-        state.status = "idle";
-        state.task = "Paused";
-        render();
-      });
-
-      $("refresh").addEventListener("click", () => {
-        push("State refreshed.");
-        render();
-      });
-
-      $("reset").addEventListener("click", () => {
-        state = structuredClone(initialState);
-        $("reply").value = "";
-        render();
-      });
-
-      $("reply").addEventListener("keydown", (event) => {
-        if (event.key !== "Enter") {
-          return;
-        }
-
-        const value = $("reply").value.trim();
-        if (!value) {
-          return;
-        }
-
-        push(`You: ${value}`);
-        state.status = "working";
-        state.task = "Processing reply";
-        $("reply").value = "";
-        render();
-      });
-
-      render();
-    </script>
   </body>
 </html>

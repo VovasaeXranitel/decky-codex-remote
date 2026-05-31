@@ -94,26 +94,21 @@ class Plugin:
         port = str(settings.get("port") or "43871").strip()
         prefixes = Plugin._local_ipv4_prefixes(self)
         configured_host = str(settings.get("host") or "").strip()
-        if configured_host:
-            configured = self._probe_readyz(configured_host, port)
-            if configured:
-                return {
-                    "ok": True,
-                    "message": f"Found Codex server: {configured['label']}.",
-                    "devices": [configured],
-                }
 
         if not prefixes:
             return {"ok": False, "message": "LAN IPv4 address not found on Steam Deck.", "devices": []}
 
-        candidates = ["127.0.0.1", "localhost"]
+        candidates = []
+        if configured_host and not configured_host.startswith(("127.", "localhost")):
+            candidates.append(configured_host)
         for prefix in prefixes[:3]:
             candidates.extend(f"{prefix}.{index}" for index in range(1, 255))
-        candidates = sorted(set(candidates))
+
+        unique_candidates = list(dict.fromkeys(candidates))
 
         devices: list[dict[str, str]] = []
         with ThreadPoolExecutor(max_workers=48) as executor:
-            future_map = {executor.submit(Plugin._probe_readyz, self, host, port): host for host in candidates}
+            future_map = {executor.submit(Plugin._probe_readyz, self, host, port): host for host in unique_candidates}
             for future in as_completed(future_map):
                 result = future.result()
                 if result:

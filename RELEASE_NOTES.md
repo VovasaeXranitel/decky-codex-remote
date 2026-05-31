@@ -1,13 +1,14 @@
-# Codex Remote v0.1.4
+# Codex Remote v0.1.5
 
-LAN scan feedback patch.
+LAN discovery and Steam Deck panel cleanup patch.
 
 ## Highlights
 
-- Checks the configured host before doing a full subnet scan.
-- Makes `192.168.1.81:43871` resolve immediately when reachable.
-- Shows the actual Decky/frontend error if scan callable fails.
-- Verified from Steam Deck against `http://192.168.1.81:43871/readyz`.
+- Removes localhost-only discovery behavior from the production LAN scanner.
+- Scans SteamOS IPv4 LAN prefixes even when a saved host is configured.
+- Replaces the broken localized labels with stable ASCII labels.
+- Keeps Decky buttons dark and adds gamepad OK handling.
+- Verified from Steam Deck with both saved-host and blank-host LAN scans.
 
 ## Install
 

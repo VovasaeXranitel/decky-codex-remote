@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.5 - 2026-05-31
+
+Fix LAN discovery and Steam Deck panel usability.
+
+- Remove localhost discovery candidates from the production LAN scanner.
+- Scan SteamOS IPv4 LAN prefixes even when a saved host is present.
+- Keep the saved host as a normal prioritized candidate, not a scan shortcut.
+- Replace broken localized labels with stable ASCII UI text.
+- Add gamepad OK handling to the custom dark Decky buttons.
+- Refresh the local Steam Deck panel preview.
+
 ## 0.1.4 - 2026-05-31
 
 Fix LAN scan feedback.
@@ -15,7 +26,6 @@ Fix Steam Deck panel readability.
 - Replace bright Steam `Button` controls with dark custom `Focusable` controls.
 - Keep gamepad focus behavior without white button backgrounds.
 - Improve LAN scanner address discovery on SteamOS using `ip` route/address fallbacks.
-- Add localhost candidates to discovery for local development paths.
 
 ## 0.1.2 - 2026-05-31
 
