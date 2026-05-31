@@ -1,12 +1,12 @@
-# Codex Remote v0.1.15
+# Codex Remote v0.1.16
 
-Steam Deck transcript scrolling fix.
+Native transcript scrolling.
 
 ## Highlights
 
-- Wraps the transcript in Decky's native `ScrollPanel` and `ScrollPanelGroup`.
-- Adds explicit `Up` and `Down` controls so scrolling works from the Steam Deck controls.
-- Keeps wheel/touch scrolling on the focused transcript area.
+- Removes the temporary `Up` and `Down` scroll buttons.
+- Makes transcript cards focusable so Decky scrolls the native panel as focus moves through the chat.
+- Keeps the transcript inside Decky's native `ScrollPanel` and `ScrollPanelGroup`.
 - Keeps the v0.1.14 structured transcript cards and streaming behavior.
 - Verified through package build and Python backend checks.
 

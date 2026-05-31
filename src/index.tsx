@@ -12,7 +12,7 @@ import {
   TextField,
   ToggleField,
 } from "@decky/ui";
-import { FC, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { FC, ReactNode, useEffect, useMemo, useState } from "react";
 import { FaTerminal } from "react-icons/fa";
 
 type CodexState = {
@@ -431,24 +431,7 @@ const styles = `
 }
 
 .codexRemoteScrollInner {
-  max-height: 330px;
-  min-height: 170px;
-  overflow-y: auto;
   padding: 6px;
-  scrollbar-width: thin;
-}
-
-.codexRemoteScrollInnerFocus,
-.codexRemoteScrollInner:focus {
-  border-color: #8d98a8;
-  box-shadow: inset 0 0 0 1px #8d98a8;
-}
-
-.codexRemoteScrollActions {
-  display: grid;
-  gap: 8px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: 8px;
 }
 
 .codexRemoteMessage {
@@ -482,6 +465,12 @@ const styles = `
   flex-direction: column;
   gap: 5px;
   padding: 8px;
+}
+
+.codexRemoteTranscriptItemFocus,
+.codexRemoteTranscriptItem:focus {
+  border-color: #8d98a8;
+  box-shadow: inset 0 0 0 1px #8d98a8;
 }
 
 .codexRemoteTranscriptAssistant {
@@ -710,7 +699,12 @@ const TranscriptCard: FC<TranscriptCardProps> = ({ item }) => {
   const isCodeLike = item.kind === "command" || item.kind === "tool" || item.kind === "file";
 
   return (
-    <div className={`codexRemoteTranscriptItem ${kindClass}`}>
+    <Focusable
+      className={`codexRemoteTranscriptItem ${kindClass}`}
+      focusClassName="codexRemoteTranscriptItemFocus"
+      role="article"
+      tabIndex={0}
+    >
       <div className="codexRemoteTranscriptTop">
         <div className="codexRemoteTranscriptTitle">{title}</div>
         {item.status && <div className="codexRemoteTranscriptStatus">{item.status}</div>}
@@ -720,7 +714,7 @@ const TranscriptCard: FC<TranscriptCardProps> = ({ item }) => {
           {item.body}
         </div>
       )}
-    </div>
+    </Focusable>
   );
 };
 
@@ -736,7 +730,6 @@ const CodexRemotePanel: FC = () => {
   const [devices, setDevices] = useState<DiscoveredDevice[]>([]);
   const [accountMessage, setAccountMessage] = useState("");
   const [login, setLogin] = useState<ChatGptLogin | null>(null);
-  const transcriptRef = useRef<HTMLDivElement | null>(null);
 
   const endpoint = useMemo(
     () => (settings.host ? `ws://${settings.host}:${settings.port}` : "not configured"),
@@ -905,17 +898,6 @@ const CodexRemotePanel: FC = () => {
       console.warn("[Codex Remote] Select chat failed", error);
       setActionMessage("Chat switch failed.");
     }
-  };
-
-  const scrollTranscript = (direction: "up" | "down") => {
-    const element = transcriptRef.current;
-    if (!element) {
-      return;
-    }
-    element.scrollBy({
-      behavior: "smooth",
-      top: direction === "up" ? -180 : 180,
-    });
   };
 
   return (
@@ -1095,27 +1077,15 @@ const CodexRemotePanel: FC = () => {
             <div className="codexRemoteScrollFrame">
               <ScrollPanelGroup>
                 <ScrollPanel>
-                  <Focusable
-                    className="codexRemoteScrollInner"
-                    focusClassName="codexRemoteScrollInnerFocus"
-                    onWheel={(event) => {
-                      transcriptRef.current?.scrollBy({ top: event.deltaY });
-                    }}
-                    ref={transcriptRef}
-                    tabIndex={0}
-                  >
+                  <div className="codexRemoteScrollInner">
                     <div className="codexRemoteLog">
                       {transcript.map((item, index) => (
                         <TranscriptCard item={item} key={`${item.id}-${index}`} />
                       ))}
                     </div>
-                  </Focusable>
+                  </div>
                 </ScrollPanel>
               </ScrollPanelGroup>
-            </div>
-            <div className="codexRemoteScrollActions">
-              <CodexButton compact variant="quiet" onClick={() => scrollTranscript("up")}>Up</CodexButton>
-              <CodexButton compact variant="quiet" onClick={() => scrollTranscript("down")}>Down</CodexButton>
             </div>
           </div>
         </PanelSectionRow>

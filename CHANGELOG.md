@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.16 - 2026-05-31
+
+Make transcript scrolling native.
+
+- Remove the temporary `Up` and `Down` scroll buttons.
+- Make each transcript card focusable so Decky can scroll the native panel as focus moves.
+- Keep the transcript inside Decky's `ScrollPanel` and `ScrollPanelGroup`.
+
 ## 0.1.15 - 2026-05-31
 
 Fix Steam Deck transcript scrolling.
