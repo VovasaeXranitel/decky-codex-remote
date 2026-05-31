@@ -431,7 +431,12 @@ const styles = `
 }
 
 .codexRemoteScrollInner {
+  max-height: 330px;
+  min-height: 170px;
+  overflow-y: auto;
   padding: 6px;
+  scroll-padding: 14px 0;
+  scrollbar-width: thin;
 }
 
 .codexRemoteMessage {
@@ -702,6 +707,12 @@ const TranscriptCard: FC<TranscriptCardProps> = ({ item }) => {
     <Focusable
       className={`codexRemoteTranscriptItem ${kindClass}`}
       focusClassName="codexRemoteTranscriptItemFocus"
+      onGamepadFocus={(event) => {
+        (event.currentTarget as HTMLElement).scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }}
+      onFocus={(event) => {
+        (event.currentTarget as HTMLElement).scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }}
       role="article"
       tabIndex={0}
     >
@@ -1077,13 +1088,13 @@ const CodexRemotePanel: FC = () => {
             <div className="codexRemoteScrollFrame">
               <ScrollPanelGroup>
                 <ScrollPanel>
-                  <div className="codexRemoteScrollInner">
+                  <Focusable className="codexRemoteScrollInner" flow-children="column" tabIndex={0}>
                     <div className="codexRemoteLog">
                       {transcript.map((item, index) => (
                         <TranscriptCard item={item} key={`${item.id}-${index}`} />
                       ))}
                     </div>
-                  </div>
+                  </Focusable>
                 </ScrollPanel>
               </ScrollPanelGroup>
             </div>

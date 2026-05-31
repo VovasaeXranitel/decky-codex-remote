@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.17 - 2026-05-31
+
+Fix transcript focus scrolling.
+
+- Restore a real overflow container for the transcript.
+- Add column focus flow for transcript cards.
+- Scroll the focused transcript card into view on Steam Deck gamepad focus.
+
 ## 0.1.16 - 2026-05-31
 
 Make transcript scrolling native.
