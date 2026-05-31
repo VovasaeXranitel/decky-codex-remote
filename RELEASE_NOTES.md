@@ -1,13 +1,13 @@
-# Codex Remote v0.1.3
+# Codex Remote v0.1.4
 
-Steam Deck readability patch.
+LAN scan feedback patch.
 
 ## Highlights
 
-- Replaces bright Steam buttons with dark focused controls.
-- Keeps controller navigation through Decky `Focusable`.
-- Improves SteamOS LAN address discovery with `ip` route/address fallback.
-- Keeps direct LAN setup as the default path.
+- Checks the configured host before doing a full subnet scan.
+- Makes `192.168.1.81:43871` resolve immediately when reachable.
+- Shows the actual Decky/frontend error if scan callable fails.
+- Verified from Steam Deck against `http://192.168.1.81:43871/readyz`.
 
 ## Install
 

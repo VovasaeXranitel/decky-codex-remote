@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4 - 2026-05-31
+
+Fix LAN scan feedback.
+
+- Check the configured host first before scanning the subnet.
+- Return a fast successful scan result when the current host is reachable.
+- Show the actual frontend scan error instead of a generic failure message.
+
 ## 0.1.3 - 2026-05-31
 
 Fix Steam Deck panel readability.

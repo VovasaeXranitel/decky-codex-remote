@@ -93,6 +93,16 @@ class Plugin:
         settings = Plugin._read_settings(self)
         port = str(settings.get("port") or "43871").strip()
         prefixes = Plugin._local_ipv4_prefixes(self)
+        configured_host = str(settings.get("host") or "").strip()
+        if configured_host:
+            configured = self._probe_readyz(configured_host, port)
+            if configured:
+                return {
+                    "ok": True,
+                    "message": f"Found Codex server: {configured['label']}.",
+                    "devices": [configured],
+                }
+
         if not prefixes:
             return {"ok": False, "message": "LAN IPv4 address not found on Steam Deck.", "devices": []}
 

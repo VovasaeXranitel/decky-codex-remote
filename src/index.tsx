@@ -408,7 +408,7 @@ const CodexRemotePanel: FC = () => {
       toaster.toast({ title: "Codex Remote", body: result.message });
     } catch (error) {
       console.warn("[Codex Remote] LAN scan failed", error);
-      setConnectionMessage("LAN scan failed.");
+      setConnectionMessage(`LAN scan failed: ${String(error)}`);
     }
   };
 
