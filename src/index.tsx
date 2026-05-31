@@ -5,8 +5,6 @@ import {
 } from "@decky/api";
 import {
   Focusable,
-  GamepadButton,
-  GamepadEvent,
   PanelSection,
   PanelSectionRow,
   ScrollPanel,
@@ -698,10 +696,9 @@ const ChatItem: FC<ChatItemProps> = ({ thread, onSelect }) => {
 
 type TranscriptCardProps = {
   item: TranscriptItem;
-  onDirection: (event: GamepadEvent) => void;
 };
 
-const TranscriptCard: FC<TranscriptCardProps> = ({ item, onDirection }) => {
+const TranscriptCard: FC<TranscriptCardProps> = ({ item }) => {
   const kindClass = `codexRemoteTranscript${item.kind.charAt(0).toUpperCase()}${item.kind.slice(1)}`;
   const title = item.title || transcriptLabel[item.kind] || "Event";
   const isCodeLike = item.kind === "command" || item.kind === "tool" || item.kind === "file";
@@ -716,8 +713,6 @@ const TranscriptCard: FC<TranscriptCardProps> = ({ item, onDirection }) => {
       onFocus={(event) => {
         (event.currentTarget as HTMLElement).scrollIntoView({ block: "nearest", behavior: "smooth" });
       }}
-      onButtonDown={onDirection}
-      onGamepadDirection={onDirection}
       role="article"
       tabIndex={0}
     >
@@ -763,6 +758,9 @@ const CodexRemotePanel: FC = () => {
         body: message,
         status: "",
       }));
+  const transcriptTailKey = transcript.length
+    ? `${transcript[transcript.length - 1].id}:${transcript[transcript.length - 1].body.length}:${transcript.length}`
+    : "empty";
 
   const refreshState = async () => {
     try {
@@ -789,6 +787,16 @@ const CodexRemotePanel: FC = () => {
     const timer = window.setInterval(refreshState, 2500);
     return () => window.clearInterval(timer);
   }, [settings.autoRefresh]);
+
+  useEffect(() => {
+    const element = transcriptElementRef.current;
+    if (!element) {
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      element.scrollTop = element.scrollHeight;
+    });
+  }, [transcriptTailKey]);
 
   const persistSettings = async (nextSettings: Settings) => {
     setLocalSettings(nextSettings);
@@ -914,22 +922,6 @@ const CodexRemotePanel: FC = () => {
     } catch (error) {
       console.warn("[Codex Remote] Select chat failed", error);
       setActionMessage("Chat switch failed.");
-    }
-  };
-
-  const scrollTranscriptBy = (amount: number) => {
-    transcriptElementRef.current?.scrollBy({ top: amount, behavior: "smooth" });
-  };
-
-  const handleTranscriptDirection = (event: GamepadEvent) => {
-    if (event.detail.button === GamepadButton.DIR_DOWN) {
-      event.preventDefault();
-      event.stopPropagation();
-      scrollTranscriptBy(event.detail.is_repeat ? 72 : 104);
-    } else if (event.detail.button === GamepadButton.DIR_UP) {
-      event.preventDefault();
-      event.stopPropagation();
-      scrollTranscriptBy(event.detail.is_repeat ? -72 : -104);
     }
   };
 
@@ -1119,11 +1111,7 @@ const CodexRemotePanel: FC = () => {
                       ref={transcriptElementRef}
                     >
                       {transcript.map((item, index) => (
-                        <TranscriptCard
-                          item={item}
-                          key={`${item.id}-${index}`}
-                          onDirection={handleTranscriptDirection}
-                        />
+                        <TranscriptCard item={item} key={`${item.id}-${index}`} />
                       ))}
                     </div>
                   </Focusable>

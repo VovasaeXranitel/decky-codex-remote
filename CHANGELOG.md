@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.19 - 2026-05-31
+
+Auto-scroll transcript to the latest item.
+
+- Stop fighting Steam Deck scrollbar focus behavior.
+- Automatically keep the transcript pinned to the latest message during refresh and streaming.
+- Remove custom D-pad transcript scroll interception.
+
 ## 0.1.18 - 2026-05-31
 
 Handle transcript gamepad scrolling directly.

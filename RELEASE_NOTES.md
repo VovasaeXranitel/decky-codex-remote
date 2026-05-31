@@ -1,12 +1,13 @@
-# Codex Remote v0.1.18
+# Codex Remote v0.1.19
 
-Direct gamepad transcript scrolling.
+Auto-scroll transcript tail.
 
 ## Highlights
 
-- Handles Steam Deck `DIR_UP` and `DIR_DOWN` events directly on transcript cards.
-- Scrolls the transcript container programmatically, without visible helper buttons.
-- Keeps touch and wheel scrolling support.
+- Automatically keeps the transcript pinned to the latest message.
+- Updates the scroll position during refreshes and streaming text growth.
+- Removes custom D-pad transcript scroll interception.
+- Avoids relying on Steam Deck scrollbar activation.
 - Keeps the transcript inside Decky's native scroll components.
 - Keeps the v0.1.14 structured transcript cards and streaming behavior.
 - Verified through package build and Python backend checks.
