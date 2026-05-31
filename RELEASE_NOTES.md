@@ -1,12 +1,14 @@
-# Codex Remote v0.1.1
+# Codex Remote v0.1.2
 
-Patch release for the first Steam Deck install test.
+Steam Deck usability patch.
 
 ## Highlights
 
-- Fixes backend startup under Decky Loader v3.2.4.
-- Keeps bundled Python modules importable from the installed plugin folder.
-- Keeps Codex App Server client state compatible with Decky's plugin invocation model.
+- Reworks the panel around native Decky button rows.
+- Removes custom/nested button layouts that were unreliable with Steam Deck focus navigation.
+- Hides approval and pause actions until they are usable.
+- Saves current settings before connect, scan, account, and login actions.
+- Keeps the panel more compact for the Decky side drawer.
 
 ## Install
 

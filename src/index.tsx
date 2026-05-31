@@ -11,7 +11,19 @@ import {
   ToggleField,
 } from "@decky/ui";
 import { FC, useEffect, useMemo, useState } from "react";
-import { FaCheck, FaCog, FaPause, FaTimes } from "react-icons/fa";
+import {
+  FaCheck,
+  FaCog,
+  FaPause,
+  FaPlug,
+  FaReply,
+  FaSearch,
+  FaSignInAlt,
+  FaSync,
+  FaTimes,
+  FaUnlink,
+  FaUser,
+} from "react-icons/fa";
 
 type CodexState = {
   status: "disconnected" | "idle" | "working" | "approval";
@@ -108,7 +120,8 @@ const styles = `
   align-items: center;
   display: flex;
   justify-content: space-between;
-  padding: 6px 0 10px;
+  gap: 10px;
+  padding: 4px 0 8px;
 }
 
 .codexRemoteTitle,
@@ -126,18 +139,6 @@ const styles = `
   letter-spacing: 0;
 }
 
-.codexRemoteIconButton {
-  align-items: center;
-  background: #202020;
-  border: 1px solid #343434;
-  border-radius: 6px;
-  color: #d8d8d8;
-  display: flex;
-  height: 30px;
-  justify-content: center;
-  width: 30px;
-}
-
 .codexRemoteSettings {
   border-bottom: 1px solid #2a2a2a;
   margin-bottom: 8px;
@@ -149,6 +150,7 @@ const styles = `
   display: flex;
   gap: 8px;
   min-height: 24px;
+  overflow: hidden;
 }
 
 .codexRemoteDot {
@@ -176,6 +178,7 @@ const styles = `
 
 .codexRemoteTask {
   border-top: 1px solid #2a2a2a;
+  overflow-wrap: anywhere;
   padding-top: 10px;
 }
 
@@ -189,6 +192,7 @@ const styles = `
   color: #d8d8d8;
   font-size: 12px;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .codexRemoteApproval {
@@ -210,13 +214,19 @@ const styles = `
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: 11px;
   padding: 7px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
-.codexRemoteActions {
-  display: grid;
-  gap: 8px;
-  grid-template-columns: 1fr 1fr;
-  width: 100%;
+.codexRemoteRow {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.codexRemoteTextArea input {
+  min-height: 38px;
 }
 `;
 
@@ -226,6 +236,7 @@ const CodexRemotePanel: FC = () => {
   const [reply, setReply] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [connectionMessage, setConnectionMessage] = useState("");
+  const [actionMessage, setActionMessage] = useState("");
   const [devices, setDevices] = useState<DiscoveredDevice[]>([]);
   const [accountMessage, setAccountMessage] = useState("");
   const [login, setLogin] = useState<ChatGptLogin | null>(null);
@@ -265,13 +276,17 @@ const CodexRemotePanel: FC = () => {
     setLocalSettings(nextSettings);
     try {
       await setSettings(nextSettings);
+      return nextSettings;
     } catch (error) {
       console.warn("[Codex Remote] Failed to save settings", error);
+      setConnectionMessage("Не удалось сохранить настройки.");
+      return nextSettings;
     }
   };
 
   const runConnectionTest = async () => {
     try {
+      await setSettings(settings);
       const result = await testConnection();
       setConnectionMessage(result.message);
       toaster.toast({
@@ -287,6 +302,7 @@ const CodexRemotePanel: FC = () => {
 
   const runConnect = async () => {
     try {
+      await setSettings(settings);
       const result = await connectServer();
       setConnectionMessage(result.message);
       toaster.toast({ title: "Codex Remote", body: result.message });
@@ -311,7 +327,8 @@ const CodexRemotePanel: FC = () => {
 
   const runScanLan = async () => {
     try {
-      setConnectionMessage("Scanning LAN...");
+      await setSettings(settings);
+      setConnectionMessage("Сканирую сеть...");
       const result = await scanLan();
       setDevices(result.devices || []);
       setConnectionMessage(result.message);
@@ -330,6 +347,7 @@ const CodexRemotePanel: FC = () => {
 
   const runGetAccount = async () => {
     try {
+      await setSettings(settings);
       const result = await getAccount();
       setAccountMessage(result.message);
       toaster.toast({ title: "Codex Remote", body: result.message });
@@ -342,6 +360,7 @@ const CodexRemotePanel: FC = () => {
 
   const runChatGptLogin = async () => {
     try {
+      await setSettings(settings);
       const result = await startChatGptLogin();
       setLogin(result);
       setAccountMessage(result.message);
@@ -356,12 +375,14 @@ const CodexRemotePanel: FC = () => {
     try {
       const nextState = await sendAction(action, payload);
       setState(nextState);
+      setActionMessage("");
 
       if (action === "reply") {
         setReply("");
       }
     } catch (error) {
       console.warn("[Codex Remote] Action failed", error);
+      setActionMessage("Действие не выполнено. Проверь подключение.");
       toaster.toast({
         title: "Codex Remote",
         body: "Action failed. Check Codex App Server connection.",
@@ -378,13 +399,17 @@ const CodexRemotePanel: FC = () => {
             <div className="codexRemoteTitle">Codex</div>
             <div className="codexRemoteEndpoint">{endpoint}</div>
           </div>
-          <button
-            className="codexRemoteIconButton"
+        </div>
+
+        <PanelSectionRow>
+          <ButtonItem
+            icon={<FaCog />}
+            layout="inline"
             onClick={() => setShowSettings(!showSettings)}
           >
-            <FaCog />
-          </button>
-        </div>
+            {showSettings ? "Готово" : "Настройки"}
+          </ButtonItem>
+        </PanelSectionRow>
 
         {showSettings && (
           <div className="codexRemoteSettings">
@@ -398,13 +423,13 @@ const CodexRemotePanel: FC = () => {
               />
             </PanelSectionRow>
             <PanelSectionRow>
-              <ButtonItem layout="below" onClick={runScanLan}>
-                Scan LAN
+              <ButtonItem icon={<FaSearch />} layout="inline" onClick={runScanLan}>
+                Найти Codex в сети
               </ButtonItem>
             </PanelSectionRow>
             {devices.map((device) => (
               <PanelSectionRow key={`${device.host}:${device.port}`}>
-                <ButtonItem layout="below" onClick={() => selectDevice(device)}>
+                <ButtonItem layout="inline" onClick={() => selectDevice(device)}>
                   {device.label}
                 </ButtonItem>
               </PanelSectionRow>
@@ -420,8 +445,9 @@ const CodexRemotePanel: FC = () => {
             </PanelSectionRow>
             <PanelSectionRow>
               <TextField
-                label="App Server token"
+                label="Token"
                 value={settings.token}
+                bIsPassword
                 onChange={(event) =>
                   persistSettings({ ...settings, token: event.target.value })
                 }
@@ -429,7 +455,7 @@ const CodexRemotePanel: FC = () => {
             </PanelSectionRow>
             <PanelSectionRow>
               <ToggleField
-                label="Auto refresh"
+                label="Автообновление"
                 checked={settings.autoRefresh}
                 onChange={(checked) =>
                   persistSettings({ ...settings, autoRefresh: checked })
@@ -437,18 +463,18 @@ const CodexRemotePanel: FC = () => {
               />
             </PanelSectionRow>
             <PanelSectionRow>
-              <div className="codexRemoteActions">
-                <ButtonItem layout="below" onClick={runConnect}>
-                  Connect
-                </ButtonItem>
-                <ButtonItem layout="below" onClick={runDisconnect}>
-                  Disconnect
-                </ButtonItem>
-              </div>
+              <ButtonItem icon={<FaPlug />} layout="inline" onClick={runConnect}>
+                Подключиться
+              </ButtonItem>
             </PanelSectionRow>
             <PanelSectionRow>
-              <ButtonItem layout="below" onClick={runConnectionTest}>
-                Check /readyz
+              <ButtonItem icon={<FaUnlink />} layout="inline" onClick={runDisconnect}>
+                Отключиться
+              </ButtonItem>
+            </PanelSectionRow>
+            <PanelSectionRow>
+              <ButtonItem icon={<FaSync />} layout="inline" onClick={runConnectionTest}>
+                Проверить сервер
               </ButtonItem>
             </PanelSectionRow>
             {connectionMessage && (
@@ -457,19 +483,19 @@ const CodexRemotePanel: FC = () => {
               </PanelSectionRow>
             )}
             <PanelSectionRow>
-              <div className="codexRemoteActions">
-                <ButtonItem layout="below" onClick={runChatGptLogin}>
-                  Sign in ChatGPT
-                </ButtonItem>
-                <ButtonItem layout="below" onClick={runGetAccount}>
-                  Account
-                </ButtonItem>
-              </div>
+              <ButtonItem icon={<FaSignInAlt />} layout="inline" onClick={runChatGptLogin}>
+                Войти в ChatGPT
+              </ButtonItem>
+            </PanelSectionRow>
+            <PanelSectionRow>
+              <ButtonItem icon={<FaUser />} layout="inline" onClick={runGetAccount}>
+                Аккаунт
+              </ButtonItem>
             </PanelSectionRow>
             {login?.verificationUrl && login?.userCode && (
               <PanelSectionRow>
                 <div className="codexRemoteApproval">
-                  <div>Open this URL and enter the code.</div>
+                  <div>Открой URL и введи код.</div>
                   <code>{login.verificationUrl}</code>
                   <code>{login.userCode}</code>
                 </div>
@@ -486,14 +512,14 @@ const CodexRemotePanel: FC = () => {
         <PanelSectionRow>
           <div className="codexRemoteThread">
             <span className={`codexRemoteDot ${statusClass[state.status]}`} />
-            <span>{state.thread}</span>
+            <span className="codexRemoteRow">{state.thread}</span>
             <span className="codexRemoteMuted">{statusLabel[state.status]}</span>
           </div>
         </PanelSectionRow>
 
         <PanelSectionRow>
           <div className="codexRemoteTask">
-            <div className="codexRemoteMuted">Current</div>
+            <div className="codexRemoteMuted">Текущая задача</div>
             <div>{state.task}</div>
           </div>
         </PanelSectionRow>
@@ -517,46 +543,47 @@ const CodexRemotePanel: FC = () => {
           </PanelSectionRow>
         )}
 
-        <PanelSectionRow>
-          <div className="codexRemoteActions">
-            <ButtonItem
-              layout="below"
-              onClick={() => runAction("approve")}
-              disabled={!state.approvalText}
-            >
-              <FaCheck /> Approve
-            </ButtonItem>
-            <ButtonItem
-              layout="below"
-              onClick={() => runAction("deny")}
-              disabled={!state.approvalText}
-            >
-              <FaTimes /> Deny
-            </ButtonItem>
-          </div>
-        </PanelSectionRow>
+        {state.approvalText && (
+          <>
+            <PanelSectionRow>
+              <ButtonItem icon={<FaCheck />} layout="inline" onClick={() => runAction("approve")}>
+                Разрешить
+              </ButtonItem>
+            </PanelSectionRow>
+            <PanelSectionRow>
+              <ButtonItem icon={<FaTimes />} layout="inline" onClick={() => runAction("deny")}>
+                Отклонить
+              </ButtonItem>
+            </PanelSectionRow>
+          </>
+        )}
 
         <PanelSectionRow>
-          <TextField
-            label="Message Codex"
-            value={reply}
-            onChange={(event) => setReply(event.target.value)}
-          />
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <div className="codexRemoteActions">
-            <ButtonItem layout="below" onClick={() => runAction("pause")}>
-              <FaPause /> Pause
-            </ButtonItem>
-            <ButtonItem
-              layout="below"
-              onClick={() => runAction("reply", reply)}
-              disabled={!reply.trim()}
-            >
-              Reply
-            </ButtonItem>
+          <div className="codexRemoteTextArea">
+            <TextField
+              label="Сообщение"
+              value={reply}
+              onChange={(event) => setReply(event.target.value)}
+            />
           </div>
         </PanelSectionRow>
+        <PanelSectionRow>
+          <ButtonItem icon={<FaReply />} layout="inline" onClick={() => runAction("reply", reply)} disabled={!reply.trim()}>
+            Отправить
+          </ButtonItem>
+        </PanelSectionRow>
+        {state.status === "working" && (
+          <PanelSectionRow>
+            <ButtonItem icon={<FaPause />} layout="inline" onClick={() => runAction("pause")}>
+              Пауза
+            </ButtonItem>
+          </PanelSectionRow>
+        )}
+        {actionMessage && (
+          <PanelSectionRow>
+            <div className="codexRemoteMessage">{actionMessage}</div>
+          </PanelSectionRow>
+        )}
       </PanelSection>
     </div>
   );
