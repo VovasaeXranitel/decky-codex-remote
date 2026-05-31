@@ -90,6 +90,12 @@
         width: 188px;
       }
 
+      .header-actions {
+        display: flex;
+        gap: 5px;
+        margin-top: 6px;
+      }
+
       .status {
         background: #151922;
         border: 1px solid #2e3541;
@@ -111,8 +117,9 @@
       .grid {
         display: grid;
         gap: 6px;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         margin-top: 10px;
+        min-width: 0;
       }
 
       button {
@@ -125,9 +132,17 @@
         font-size: 12px;
         font-weight: 550;
         justify-content: center;
-        min-height: 31px;
+        max-width: 100%;
+        min-height: 28px;
+        min-width: 0;
         padding: 5px 8px;
-        width: 100%;
+        width: auto;
+      }
+
+      .compact {
+        font-size: 11px;
+        min-height: 28px;
+        padding: 4px 7px;
       }
 
       .primary {
@@ -150,8 +165,8 @@
 
       .work {
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        margin-top: 12px;
-        padding-bottom: 10px;
+        margin-top: 10px;
+        padding-bottom: 8px;
       }
 
       .thread {
@@ -170,6 +185,8 @@
         color: #d7d7da;
         font-size: 12px;
         line-height: 1.35;
+        max-height: 42px;
+        overflow: hidden;
         overflow-wrap: anywhere;
       }
 
@@ -197,8 +214,10 @@
       .activity {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 5px;
         margin-top: 10px;
+        max-height: 96px;
+        overflow: hidden;
       }
 
       input {
@@ -221,14 +240,13 @@
           <div>
             <div class="title">Codex</div>
             <div class="endpoint">ws://192.168.1.81:43871</div>
+            <div class="header-actions">
+              <button class="quiet compact">Setup</button>
+              <button class="quiet compact">Sync</button>
+            </div>
           </div>
           <div class="status"><span class="dot"></span>Working</div>
         </header>
-
-        <div class="toolbar">
-          <button class="quiet">Setup</button>
-          <button class="quiet">Refresh</button>
-        </div>
 
         <section class="work">
           <div class="thread">
@@ -246,21 +264,19 @@
         </section>
 
         <div class="grid">
-          <button class="primary">Approve</button>
-          <button class="danger">Deny</button>
+          <button class="primary compact">Approve</button>
+          <button class="danger compact">Deny</button>
         </div>
 
         <section class="activity">
           <div class="eyebrow">Activity</div>
-          <div class="message">LAN scan found 192.168.1.81:43871.</div>
-          <div class="message">Codex App Server is connected.</div>
-          <div class="message">Waiting for the next decision.</div>
+          <div class="message">LAN scan found 192.168.1.81:43871 and Codex App Server is connected.</div>
         </section>
 
         <input aria-label="Message" placeholder="Message" />
         <div class="grid">
-          <button class="primary">Send</button>
-          <button class="quiet">Pause</button>
+          <button class="primary compact">Send</button>
+          <button class="quiet compact">Pause</button>
         </div>
       </aside>
     </main>

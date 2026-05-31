@@ -1,13 +1,14 @@
-# Codex Remote v0.1.7
+# Codex Remote v0.1.12
 
-Mobile-style Codex control surface pass.
+Steam Deck panel density pass.
 
 ## Highlights
 
-- Makes current work, activity, approvals, and message input the main panel flow.
-- Moves connection, scan, token, and account controls into a compact Setup area.
-- Adds visual hierarchy for primary, quiet, and deny actions.
-- Keeps the v0.1.6 Decky callable fix and universal LAN scan.
+- Moves Setup and Sync into compact header actions.
+- Keeps the default panel focused on status, current task, activity, and reply.
+- Shortens connection controls to Scan, Link, ChatGPT, and More.
+- Keeps manual Host/Port/Token controls in Advanced.
+- Verified through live Steam Deck QuickAccess CEF screenshots.
 
 ## Install
 

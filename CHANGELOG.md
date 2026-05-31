@@ -1,5 +1,47 @@
 # Changelog
 
+## 0.1.12 - 2026-05-31
+
+Tighten the real Steam Deck panel layout.
+
+- Move Setup and Sync into compact header actions.
+- Shorten setup actions to Scan, Link, ChatGPT, and More.
+- Reduce activity height so the composer and action buttons stay reachable.
+- Keep the layout focused on Codex mobile's status, task, activity, and reply flow.
+
+## 0.1.11 - 2026-05-31
+
+Make Setup compact by default.
+
+- Keep the Setup drawer focused on scan, connect, ChatGPT, and advanced settings.
+- Move Host, Port, Token, Check, Account, Disconnect, and live updates into Advanced.
+- Reduce the default Setup height so work and composer stay visible.
+
+## 0.1.10 - 2026-05-31
+
+Tighten the live Steam Deck panel controls.
+
+- Force Decky focusable buttons to compact 32px rows.
+- Reduce the message input height while keeping the dark focused styling.
+- Recheck the layout through the live QuickAccess CEF screenshot path.
+
+## 0.1.9 - 2026-05-31
+
+Fix the live Decky message input styling.
+
+- Inspect the real QuickAccess DOM for Decky `TextField`.
+- Override Decky `DialogInput` focus styles inside the Codex composer.
+- Keep the input dark when focused on Steam Deck.
+
+## 0.1.8 - 2026-05-31
+
+Fix real Steam Deck panel layout.
+
+- Debug the live QuickAccess CEF tab on the Steam Deck.
+- Remove two-column Decky button grids that overflow the panel row width.
+- Clamp activity messages so the composer stays reachable.
+- Reduce button height and force button widths to fit the Decky row.
+
 ## 0.1.7 - 2026-05-31
 
 Move the panel toward the Codex mobile control-surface model.
