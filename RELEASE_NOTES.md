@@ -1,14 +1,14 @@
-# Codex Remote v0.1.13
+# Codex Remote v0.1.14
 
-Chat picker and title fix.
+Scrollable transcript and streaming pass.
 
 ## Highlights
 
-- Adds a `Chat` picker for switching Codex threads from the Steam Deck panel.
-- Uses Codex thread names/previews instead of raw UUID thread ids.
-- Adds clearer spacing between compact buttons.
-- Keeps the panel focused on chat, task, activity, approvals, and reply.
-- Verified through package builds and live Steam Deck QuickAccess screenshots.
+- Replaces the one-line activity log with a scrollable transcript.
+- Adds professional cards for Codex/user messages, reasoning, commands, tools, file changes, approvals, errors, and events.
+- Keeps streaming Codex deltas together as one live transcript item.
+- Formats command and tool payloads in compact monospace blocks with statuses.
+- Verified through package builds and live Codex App Server transcript reads.
 
 ## Install
 

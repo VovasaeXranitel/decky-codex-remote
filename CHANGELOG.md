@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.14 - 2026-05-31
+
+Add a scrollable professional transcript.
+
+- Replace the single-line activity view with a scrollable transcript.
+- Add structured cards for user messages, Codex messages, reasoning, commands, tools, file changes, approvals, errors, and system events.
+- Keep streaming Codex deltas as a live transcript item instead of spamming separate log rows.
+- Render command/tool/file payloads in compact monospace blocks with statuses.
+
 ## 0.1.13 - 2026-05-31
 
 Add chat selection and fix thread titles.

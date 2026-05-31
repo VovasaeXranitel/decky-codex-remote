@@ -27,6 +27,15 @@ DISCONNECTED_STATE = {
     "threadId": "",
     "threads": [],
     "task": "Configure Codex App Server connection",
+    "transcript": [
+        {
+            "id": "setup",
+            "kind": "system",
+            "title": "Setup",
+            "body": "Open settings and enter your PC host, port, and Codex App Server token.",
+            "status": "",
+        }
+    ],
     "messages": [
         "Open settings and enter your PC host, port, and Codex App Server token.",
         "No OpenAI account data is stored by the plugin.",

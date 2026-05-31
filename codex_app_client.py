@@ -27,12 +27,23 @@ class CodexAppClient:
         self._active_turn_id: str | None = None
         self._threads: list[dict[str, Any]] = []
         self._messages: list[str] = []
+        self._live_items: list[dict[str, Any]] = []
+        self._stream_item: dict[str, Any] | None = None
         self._last_state: dict[str, Any] = {
             "status": "disconnected",
             "thread": "Decky remote",
             "threadId": "",
             "threads": [],
             "task": "Configure Codex App Server connection",
+            "transcript": [
+                {
+                    "id": "setup",
+                    "kind": "system",
+                    "title": "Setup",
+                    "body": "Enter your Codex App Server host, port, and token.",
+                    "status": "",
+                }
+            ],
             "messages": ["Enter your Codex App Server host, port, and token."],
         }
 
@@ -177,6 +188,15 @@ class CodexAppClient:
                         "threadId": "",
                         "threads": [],
                         "task": "Codex App Server is not reachable",
+                        "transcript": [
+                            {
+                                "id": "connection-error",
+                                "kind": "error",
+                                "title": "Connection",
+                                "body": self._error,
+                                "status": "failed",
+                            }
+                        ],
                         "messages": [self._error],
                     }
                 self.disconnect()
@@ -305,27 +325,29 @@ class CodexAppClient:
             self._active_thread_id = params.get("threadId") or self._active_thread_id
             turn = params.get("turn") or {}
             self._active_turn_id = turn.get("id") or params.get("turnId") or self._active_turn_id
-            self._add_message("Codex started a turn.")
+            self._add_event("event", "Turn started", "Codex started working.", "running")
         elif method == "turn/completed":
             self._active_turn_id = None
             self._pending_approval = None
-            self._add_message("Codex completed a turn.")
+            self._finish_stream_item()
+            self._add_event("event", "Turn completed", "Codex finished the turn.", "completed")
             self._refresh_snapshot()
         elif method in {"agent/message/delta", "reasoning/summary/text/delta", "reasoning/text/delta"}:
             text = params.get("delta") or params.get("text")
             if text:
-                self._add_message(str(text).strip())
+                kind = "reasoning" if "reasoning" in method else "assistant"
+                self._append_stream_delta(kind, str(text))
         elif method == "error":
-            self._add_message(params.get("message") or "Codex App Server error.")
+            self._add_event("error", "Codex error", params.get("message") or "Codex App Server error.", "failed")
         elif method == "account/login/completed":
             if params.get("success"):
-                self._add_message("ChatGPT login completed.")
+                self._add_event("event", "ChatGPT", "Login completed.", "completed")
             else:
-                self._add_message(f"ChatGPT login failed: {params.get('error') or 'unknown error'}")
+                self._add_event("error", "ChatGPT", f"Login failed: {params.get('error') or 'unknown error'}", "failed")
         elif method == "account/updated":
             mode = params.get("authMode") or "signed out"
             plan = params.get("planType")
-            self._add_message(f"Account: {mode}{f' ({plan})' if plan else ''}")
+            self._add_event("event", "Account", f"{mode}{f' ({plan})' if plan else ''}", "completed")
 
     def _refresh_snapshot(self) -> None:
         if not self._connected:
@@ -346,6 +368,15 @@ class CodexAppClient:
                     "threadId": "",
                     "threads": [],
                     "task": "Connected to Codex App Server",
+                    "transcript": [
+                        {
+                            "id": "no-threads",
+                            "kind": "system",
+                            "title": "No chats",
+                            "body": "No Codex threads were found.",
+                            "status": "",
+                        }
+                    ],
                     "messages": ["No Codex threads were found."],
                 }
                 return
@@ -355,9 +386,14 @@ class CodexAppClient:
             title = self._thread_title(thread)
             status = self._status_from_thread(thread)
             self._active_turn_id = self._active_turn_id or self._find_active_turn_id(thread)
-            messages = self._messages_from_thread(thread)
+            transcript = self._transcript_from_thread(thread)
+            messages = [item.get("body", "") for item in transcript if item.get("body")]
             if self._messages:
                 messages = (messages + self._messages)[-5:]
+            if self._live_items:
+                transcript = (transcript + self._live_items)[-80:]
+            if self._stream_item:
+                transcript = (transcript + [self._stream_item])[-80:]
             if thread_id and not any(item["id"] == thread_id for item in summaries):
                 summaries.insert(0, self._thread_summary(thread, loaded_ids))
             summaries = [
@@ -372,6 +408,15 @@ class CodexAppClient:
                 "threadId": thread_id,
                 "threads": summaries,
                 "task": self._task_from_thread(thread, status),
+                "transcript": transcript[-80:] or [
+                    {
+                        "id": "connected",
+                        "kind": "system",
+                        "title": "Connected",
+                        "body": "Connected to Codex App Server.",
+                        "status": "completed",
+                    }
+                ],
                 "messages": messages[-5:] or ["Connected to Codex App Server."],
             }
         except Exception as exc:
@@ -439,14 +484,14 @@ class CodexAppClient:
                 "text": text,
                 "command": command,
             }
-        self._add_message(text)
+        self._add_event("approval", text, str(command or "Approval needed"), "pending")
 
     def _answer_approval(self, approved: bool) -> None:
         with self._lock:
             approval = self._pending_approval
             self._pending_approval = None
         if not approval:
-            self._add_message("No approval is pending.")
+            self._add_event("event", "Approval", "No approval is pending.", "")
             return
         method = approval["method"]
         if method in {"item/commandExecution/requestApproval", "item/fileChange/requestApproval", "item/permissions/requestApproval"}:
@@ -456,7 +501,7 @@ class CodexAppClient:
         else:
             decision = "accept" if approved else "decline"
         self._send_json({"jsonrpc": "2.0", "id": approval["rpc_id"], "result": {"decision": decision}})
-        self._add_message("Approved from Steam Deck." if approved else "Denied from Steam Deck.")
+        self._add_event("approval", "Approval answered", "Approved from Steam Deck." if approved else "Denied from Steam Deck.", "completed" if approved else "denied")
 
     def _send_reply(self, text: str) -> None:
         if not self._active_thread_id:
@@ -470,15 +515,15 @@ class CodexAppClient:
             result = self._rpc("turn/start", {"threadId": self._active_thread_id, "input": input_items}, timeout=8)
             turn = (result or {}).get("turn") or {}
             self._active_turn_id = turn.get("id") or (result or {}).get("turnId")
-        self._add_message(f"You: {text}")
+        self._add_event("user", "You", text, "sent")
 
     def _interrupt(self) -> None:
         if self._active_thread_id and self._active_turn_id:
             self._rpc("turn/interrupt", {"threadId": self._active_thread_id, "turnId": self._active_turn_id}, timeout=5)
             self._active_turn_id = None
-            self._add_message("Pause requested from Steam Deck.")
+            self._add_event("event", "Pause", "Pause requested from Steam Deck.", "pending")
         else:
-            self._add_message("No active turn to pause.")
+            self._add_event("event", "Pause", "No active turn to pause.", "")
 
     def _status_from_thread(self, thread: dict[str, Any]) -> str:
         raw = thread.get("status")
@@ -504,14 +549,49 @@ class CodexAppClient:
                 return turn.get("id")
         return None
 
-    def _messages_from_thread(self, thread: dict[str, Any]) -> list[str]:
-        messages: list[str] = []
+    def _transcript_from_thread(self, thread: dict[str, Any]) -> list[dict[str, Any]]:
+        transcript: list[dict[str, Any]] = []
         for turn in thread.get("turns") or []:
             for item in turn.get("items") or []:
-                text = self._item_text(item)
-                if text:
-                    messages.append(text)
-        return messages[-5:]
+                transcript_item = self._transcript_item(item)
+                if transcript_item:
+                    transcript.append(transcript_item)
+        return transcript[-80:]
+
+    def _transcript_item(self, item: dict[str, Any]) -> dict[str, Any] | None:
+        item_id = str(item.get("id") or f"item-{len(str(item))}")
+        item_type = item.get("type")
+        if item_type == "userMessage":
+            return self._feed_item(item_id, "user", "You", self._user_message_text(item), "sent")
+        if item_type in {"agentMessage", "assistantMessage"}:
+            return self._feed_item(item_id, "assistant", "Codex", str(item.get("text") or item.get("message") or "").strip(), str(item.get("phase") or ""))
+        if item_type == "reasoning":
+            summary = " ".join(str(part) for part in (item.get("summary") or item.get("content") or []) if part)
+            return self._feed_item(item_id, "reasoning", "Reasoning", summary, "")
+        if item_type == "plan":
+            return self._feed_item(item_id, "plan", "Plan", str(item.get("text") or "").strip(), "updated")
+        if item_type in {"commandExecution", "execCommand"}:
+            command = str(item.get("command") or item.get("cmd") or "").strip()
+            output = str(item.get("aggregatedOutput") or "").strip()
+            body = command if not output else f"{command}\n\n{self._truncate(output, 900)}"
+            status = str(item.get("status") or item.get("exitCode") or "")
+            return self._feed_item(item_id, "command", "Command", body, status)
+        if item_type == "fileChange":
+            changes = item.get("changes") or []
+            body = f"{len(changes)} file change(s)" if changes else "File changes"
+            return self._feed_item(item_id, "file", "File changes", body, str(item.get("status") or ""))
+        if item_type in {"mcpToolCall", "dynamicToolCall", "collabAgentToolCall"}:
+            namespace = item.get("server") or item.get("namespace") or "tool"
+            tool = item.get("tool") or item_type
+            body = self._tool_body(item)
+            return self._feed_item(item_id, "tool", f"{namespace}.{tool}", body, str(item.get("status") or ""))
+        if item_type == "webSearch":
+            return self._feed_item(item_id, "tool", "Web search", str(item.get("query") or ""), "completed")
+        if item_type == "imageGeneration":
+            return self._feed_item(item_id, "tool", "Image generation", str(item.get("result") or item.get("savedPath") or ""), str(item.get("status") or ""))
+        if item_type in {"enteredReviewMode", "exitedReviewMode", "contextCompaction"}:
+            return self._feed_item(item_id, "event", self._humanize(item_type), "", "")
+        return None
 
     def _item_text(self, item: dict[str, Any]) -> str | None:
         item_type = item.get("type")
@@ -528,6 +608,97 @@ class CodexAppClient:
         if item_type == "planUpdate":
             return "Plan updated"
         return None
+
+    def _user_message_text(self, item: dict[str, Any]) -> str:
+        if item.get("text") or item.get("message"):
+            return str(item.get("text") or item.get("message")).strip()
+        parts: list[str] = []
+        for content in item.get("content") or []:
+            if isinstance(content, dict):
+                text = content.get("text") or content.get("inputText") or content.get("path")
+                if text:
+                    parts.append(str(text))
+            elif content:
+                parts.append(str(content))
+        return "\n".join(parts).strip()
+
+    def _tool_body(self, item: dict[str, Any]) -> str:
+        pieces: list[str] = []
+        arguments = item.get("arguments")
+        if arguments not in (None, "", {}):
+            try:
+                pieces.append(json.dumps(arguments, ensure_ascii=False, indent=2)[:900])
+            except Exception:
+                pieces.append(str(arguments)[:900])
+        error = item.get("error")
+        if error:
+            pieces.append(f"Error: {self._truncate(str(error), 500)}")
+        result = item.get("result") or item.get("contentItems") or item.get("agentsStates")
+        if result not in (None, "", {}, []):
+            try:
+                pieces.append(self._truncate(json.dumps(result, ensure_ascii=False, indent=2), 900))
+            except Exception:
+                pieces.append(self._truncate(str(result), 900))
+        prompt = item.get("prompt")
+        if prompt:
+            pieces.append(self._truncate(str(prompt), 900))
+        return "\n\n".join(pieces)
+
+    def _feed_item(self, item_id: str, kind: str, title: str, body: str, status: str) -> dict[str, Any]:
+        return {
+            "id": item_id,
+            "kind": kind,
+            "title": title,
+            "body": self._truncate(body or "", 1600),
+            "status": status or "",
+        }
+
+    def _append_stream_delta(self, kind: str, delta: str) -> None:
+        if not delta:
+            return
+        with self._lock:
+            title = "Reasoning" if kind == "reasoning" else "Codex"
+            if not self._stream_item or self._stream_item.get("kind") != kind:
+                self._finish_stream_item_locked()
+                self._stream_item = self._feed_item(f"stream-{time.time_ns()}", kind, title, "", "streaming")
+            self._stream_item["body"] = self._truncate(f"{self._stream_item.get('body', '')}{delta}", 1600)
+            self._last_state["transcript"] = (self._last_state.get("transcript") or [])[-79:] + [self._stream_item]
+            if self._stream_item["body"].strip():
+                self._last_state["messages"] = [self._stream_item["body"][-220:]]
+
+    def _finish_stream_item(self) -> None:
+        with self._lock:
+            self._finish_stream_item_locked()
+
+    def _finish_stream_item_locked(self) -> None:
+        if not self._stream_item:
+            return
+        finished = dict(self._stream_item)
+        finished["status"] = "completed"
+        self._live_items.append(finished)
+        self._live_items = self._live_items[-20:]
+        self._stream_item = None
+
+    def _add_event(self, kind: str, title: str, body: str, status: str) -> None:
+        item = self._feed_item(f"event-{time.time_ns()}", kind, title, body, status)
+        with self._lock:
+            self._live_items.append(item)
+            self._live_items = self._live_items[-20:]
+            self._last_state["transcript"] = (self._last_state.get("transcript") or [])[-79:] + [item]
+        self._add_message(f"{title}: {body}" if body else title)
+
+    def _truncate(self, value: str, limit: int) -> str:
+        if len(value) <= limit:
+            return value
+        return f"{value[: limit - 3]}..."
+
+    def _humanize(self, value: str) -> str:
+        out = []
+        for index, char in enumerate(value):
+            if index and char.isupper():
+                out.append(" ")
+            out.append(char)
+        return "".join(out).strip().capitalize()
 
     def _add_message(self, message: str) -> None:
         if not message:

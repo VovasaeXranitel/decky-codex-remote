@@ -14,7 +14,7 @@ The plugin is designed to be account-neutral. It does not include an OpenAI API 
 - ChatGPT device-code login through Codex App Server.
 - Chat picker with user-facing Codex thread names/previews.
 - Current chat/status/task view.
-- Compact activity log.
+- Scrollable transcript with structured Codex, user, reasoning, command, tool, file-change, approval, and error cards.
 - Controller-friendly `Approve`, `Deny`, `Pause`, and `Reply` actions.
 - Python backend for persisted plugin settings.
 - Direct Codex App Server WebSocket JSON-RPC client in the plugin backend.

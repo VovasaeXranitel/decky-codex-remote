@@ -21,7 +21,29 @@ type CodexState = {
   task: string;
   approvalText?: string;
   command?: string;
+  transcript: TranscriptItem[];
   messages: string[];
+};
+
+type TranscriptKind =
+  | "assistant"
+  | "approval"
+  | "command"
+  | "error"
+  | "event"
+  | "file"
+  | "plan"
+  | "reasoning"
+  | "system"
+  | "tool"
+  | "user";
+
+type TranscriptItem = {
+  id: string;
+  kind: TranscriptKind;
+  title: string;
+  body: string;
+  status?: string;
 };
 
 type CodexThread = {
@@ -77,6 +99,15 @@ const defaultState: CodexState = {
   threadId: "",
   threads: [],
   task: "Not connected",
+  transcript: [
+    {
+      id: "setup",
+      kind: "system",
+      title: "Setup",
+      body: "Open Setup, scan LAN, then connect.",
+      status: "",
+    },
+  ],
   messages: ["Open Setup, scan LAN, then connect."],
 };
 
@@ -111,6 +142,20 @@ const statusClass: Record<CodexState["status"], string> = {
   disconnected: "codexRemoteToneOffline",
   idle: "codexRemoteToneIdle",
   working: "codexRemoteToneWorking",
+};
+
+const transcriptLabel: Record<TranscriptKind, string> = {
+  approval: "Approval",
+  assistant: "Codex",
+  command: "Command",
+  error: "Error",
+  event: "Event",
+  file: "Files",
+  plan: "Plan",
+  reasoning: "Reasoning",
+  system: "System",
+  tool: "Tool",
+  user: "You",
 };
 
 const styles = `
@@ -371,22 +416,118 @@ const styles = `
 .codexRemoteLog {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  max-height: 96px;
-  overflow: hidden;
+  gap: 8px;
+  max-height: 330px;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
 }
 
 .codexRemoteMessage {
   color: #d7d7da;
   font-size: 12px;
   line-height: 1.35;
-  max-height: 42px;
-  overflow: hidden;
   overflow-wrap: anywhere;
 }
 
 .codexRemoteMessageDim {
   color: #9ba0aa;
+}
+
+.codexRemoteTranscriptHeader {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+
+.codexRemoteTranscriptCount {
+  color: #707783;
+  font-size: 10px;
+}
+
+.codexRemoteTranscriptItem {
+  background: #12161d;
+  border: 1px solid #252c36;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+}
+
+.codexRemoteTranscriptAssistant {
+  background: #151922;
+  border-color: #2d3440;
+}
+
+.codexRemoteTranscriptUser {
+  background: #18202a;
+  border-color: #384354;
+}
+
+.codexRemoteTranscriptCommand,
+.codexRemoteTranscriptTool {
+  background: #10141a;
+  border-color: #333b48;
+}
+
+.codexRemoteTranscriptError {
+  background: #21171a;
+  border-color: #57313a;
+}
+
+.codexRemoteTranscriptApproval {
+  background: #1b1a15;
+  border-color: #5d563c;
+}
+
+.codexRemoteTranscriptTop {
+  align-items: center;
+  display: flex;
+  gap: 7px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.codexRemoteTranscriptTitle {
+  color: #f0f0f1;
+  font-size: 11px;
+  font-weight: 650;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.codexRemoteTranscriptStatus {
+  background: #1b2029;
+  border: 1px solid #333b48;
+  border-radius: 999px;
+  color: #aeb4bf;
+  flex: 0 0 auto;
+  font-size: 9px;
+  line-height: 1;
+  max-width: 98px;
+  overflow: hidden;
+  padding: 4px 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.codexRemoteTranscriptBody {
+  color: #d7d7da;
+  font-size: 12px;
+  line-height: 1.36;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.codexRemoteTranscriptCode {
+  color: #cfd3db;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 10px;
+  line-height: 1.35;
 }
 
 .codexRemoteApproval {
@@ -531,6 +672,30 @@ const ChatItem: FC<ChatItemProps> = ({ thread, onSelect }) => {
   );
 };
 
+type TranscriptCardProps = {
+  item: TranscriptItem;
+};
+
+const TranscriptCard: FC<TranscriptCardProps> = ({ item }) => {
+  const kindClass = `codexRemoteTranscript${item.kind.charAt(0).toUpperCase()}${item.kind.slice(1)}`;
+  const title = item.title || transcriptLabel[item.kind] || "Event";
+  const isCodeLike = item.kind === "command" || item.kind === "tool" || item.kind === "file";
+
+  return (
+    <div className={`codexRemoteTranscriptItem ${kindClass}`}>
+      <div className="codexRemoteTranscriptTop">
+        <div className="codexRemoteTranscriptTitle">{title}</div>
+        {item.status && <div className="codexRemoteTranscriptStatus">{item.status}</div>}
+      </div>
+      {item.body && (
+        <div className={`codexRemoteTranscriptBody${isCodeLike ? " codexRemoteTranscriptCode" : ""}`}>
+          {item.body}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const CodexRemotePanel: FC = () => {
   const [state, setState] = useState<CodexState>(defaultState);
   const [settings, setLocalSettings] = useState<Settings>(defaultSettings);
@@ -550,6 +715,15 @@ const CodexRemotePanel: FC = () => {
   );
   const setupOpen = showSetup || state.status === "disconnected";
   const visibleThreads = state.threads.length ? state.threads.slice(0, 5) : [];
+  const transcript = state.transcript?.length
+    ? state.transcript
+    : state.messages.map((message, index) => ({
+        id: `message-${index}`,
+        kind: "event" as TranscriptKind,
+        title: "Activity",
+        body: message,
+        status: "",
+      }));
 
   const refreshState = async () => {
     try {
@@ -873,13 +1047,16 @@ const CodexRemotePanel: FC = () => {
         )}
 
         <PanelSectionRow>
-          <div className="codexRemoteLog">
-            <div className="codexRemoteEyebrow">Activity</div>
-            {state.messages.slice(-1).map((message, index) => (
-              <div className="codexRemoteMessage" key={`${message}-${index}`}>
-                {message}
-              </div>
+          <div>
+            <div className="codexRemoteTranscriptHeader">
+              <div className="codexRemoteEyebrow">Transcript</div>
+              <div className="codexRemoteTranscriptCount">{transcript.length}</div>
+            </div>
+            <div className="codexRemoteLog">
+              {transcript.map((item, index) => (
+                <TranscriptCard item={item} key={`${item.id}-${index}`} />
             ))}
+            </div>
           </div>
         </PanelSectionRow>
 
