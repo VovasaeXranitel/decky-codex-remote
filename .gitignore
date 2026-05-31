@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+*.zip
+.downloads/
+.codex-app-schema/
+.local-token.txt
+__pycache__/
+*.pyc
+preview/*.png
+package-lock.json
+yarn.lock

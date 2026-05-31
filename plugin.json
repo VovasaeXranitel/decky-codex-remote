@@ -1,0 +1,9 @@
+{
+  "name": "Codex Remote",
+  "author": "Alishivec",
+  "flags": [],
+  "publish": {
+    "tags": ["utility", "development", "remote-control"],
+    "description": "Control a Codex App session from the Steam Deck quick access panel."
+  }
+}
