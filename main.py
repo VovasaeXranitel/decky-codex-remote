@@ -1,10 +1,13 @@
 import json
 import os
 import socket
+import sys
 from pathlib import Path
 from typing import Any
 from urllib import error, request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import decky_plugin
 from codex_app_client import CodexAppClient
@@ -29,36 +32,36 @@ DISCONNECTED_STATE = {
 
 
 class Plugin:
-    def __init__(self) -> None:
-        self._client = CodexAppClient()
+    _client = CodexAppClient()
 
     async def _main(self) -> None:
         decky_plugin.logger.info("Codex Remote backend started")
-        self._client.configure(self._read_settings())
+        Plugin._client.configure(Plugin._read_settings(self))
 
     async def _unload(self) -> None:
-        self._client.disconnect()
+        Plugin._client.disconnect()
         decky_plugin.logger.info("Codex Remote backend unloaded")
 
     async def get_settings(self) -> dict[str, Any]:
-        return self._read_settings()
+        return Plugin._read_settings(self)
 
     async def set_settings(self, settings: dict[str, Any]) -> dict[str, Any]:
         next_settings = {**DEFAULT_SETTINGS, **settings}
-        self._settings_path().parent.mkdir(parents=True, exist_ok=True)
-        self._settings_path().write_text(json.dumps(next_settings, indent=2), encoding="utf-8")
-        self._client.configure(next_settings)
+        settings_path = Plugin._settings_path(self)
+        settings_path.parent.mkdir(parents=True, exist_ok=True)
+        settings_path.write_text(json.dumps(next_settings, indent=2), encoding="utf-8")
+        Plugin._client.configure(next_settings)
         return next_settings
 
     async def get_state(self) -> dict[str, Any]:
-        settings = self._read_settings()
+        settings = Plugin._read_settings(self)
         if not settings.get("host"):
             return DISCONNECTED_STATE
-        self._client.configure(settings)
-        return self._client.state()
+        Plugin._client.configure(settings)
+        return Plugin._client.state()
 
     async def test_connection(self) -> dict[str, Any]:
-        settings = self._read_settings()
+        settings = Plugin._read_settings(self)
         host = str(settings.get("host") or "").strip()
         port = str(settings.get("port") or "").strip()
 
@@ -78,17 +81,17 @@ class Plugin:
             return {"ok": False, "message": f"Connection failed: {exc}"}
 
     async def connect(self) -> dict[str, Any]:
-        self._client.configure(self._read_settings())
-        return self._client.connect()
+        Plugin._client.configure(Plugin._read_settings(self))
+        return Plugin._client.connect()
 
     async def disconnect(self) -> dict[str, Any]:
-        self._client.disconnect()
+        Plugin._client.disconnect()
         return {"ok": True, "message": "Disconnected."}
 
     async def scan_lan(self) -> dict[str, Any]:
-        settings = self._read_settings()
+        settings = Plugin._read_settings(self)
         port = str(settings.get("port") or "43871").strip()
-        prefixes = self._local_ipv4_prefixes()
+        prefixes = Plugin._local_ipv4_prefixes(self)
         if not prefixes:
             return {"ok": False, "message": "No LAN IPv4 address found.", "devices": []}
 
@@ -98,7 +101,7 @@ class Plugin:
 
         devices: list[dict[str, str]] = []
         with ThreadPoolExecutor(max_workers=48) as executor:
-            future_map = {executor.submit(self._probe_readyz, host, port): host for host in candidates}
+            future_map = {executor.submit(Plugin._probe_readyz, self, host, port): host for host in candidates}
             for future in as_completed(future_map):
                 result = future.result()
                 if result:
@@ -113,16 +116,16 @@ class Plugin:
         }
 
     async def get_account(self) -> dict[str, Any]:
-        self._client.configure(self._read_settings())
-        return self._client.account()
+        Plugin._client.configure(Plugin._read_settings(self))
+        return Plugin._client.account()
 
     async def start_chatgpt_login(self) -> dict[str, Any]:
-        self._client.configure(self._read_settings())
-        return self._client.start_chatgpt_login()
+        Plugin._client.configure(Plugin._read_settings(self))
+        return Plugin._client.start_chatgpt_login()
 
     async def send_action(self, action: str, payload: str | None = None) -> dict[str, Any]:
-        self._client.configure(self._read_settings())
-        return self._client.send_action(action, payload)
+        Plugin._client.configure(Plugin._read_settings(self))
+        return Plugin._client.send_action(action, payload)
 
     def _local_ipv4_prefixes(self) -> list[str]:
         prefixes = set()
@@ -158,7 +161,7 @@ class Plugin:
         return Path(decky_plugin.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"
 
     def _read_settings(self) -> dict[str, Any]:
-        path = self._settings_path()
+        path = Plugin._settings_path(self)
         if not path.exists():
             return DEFAULT_SETTINGS
 

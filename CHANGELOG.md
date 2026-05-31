@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1 - 2026-05-31
+
+Fix Decky runtime startup on Steam Deck.
+
+- Ensure the Python backend can import bundled plugin modules from its own directory.
+- Store the Codex App Server client as Decky-compatible plugin class state.
+
 ## 0.1.0 - 2026-05-31
 
 Initial alpha release.
