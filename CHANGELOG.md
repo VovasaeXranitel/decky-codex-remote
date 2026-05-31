@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.18 - 2026-05-31
+
+Handle transcript gamepad scrolling directly.
+
+- Read Decky's `GamepadButton`/`GamepadEvent` pattern from `@decky/ui`.
+- Handle `DIR_UP` and `DIR_DOWN` on focused transcript cards.
+- Scroll the transcript container programmatically without visible helper buttons.
+- Keep touch and wheel scrolling support.
+
 ## 0.1.17 - 2026-05-31
 
 Fix transcript focus scrolling.

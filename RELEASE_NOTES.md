@@ -1,13 +1,13 @@
-# Codex Remote v0.1.17
+# Codex Remote v0.1.18
 
-Transcript focus scrolling fix.
+Direct gamepad transcript scrolling.
 
 ## Highlights
 
-- Restores a real overflow container inside the native Decky scroll area.
-- Makes transcript navigation use vertical focus flow.
-- Scrolls each focused transcript card into view on Steam Deck gamepad focus.
-- Keeps the temporary `Up` and `Down` buttons removed.
+- Handles Steam Deck `DIR_UP` and `DIR_DOWN` events directly on transcript cards.
+- Scrolls the transcript container programmatically, without visible helper buttons.
+- Keeps touch and wheel scrolling support.
+- Keeps the transcript inside Decky's native scroll components.
 - Keeps the v0.1.14 structured transcript cards and streaming behavior.
 - Verified through package build and Python backend checks.
 

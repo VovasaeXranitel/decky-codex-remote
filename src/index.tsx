@@ -5,6 +5,8 @@ import {
 } from "@decky/api";
 import {
   Focusable,
+  GamepadButton,
+  GamepadEvent,
   PanelSection,
   PanelSectionRow,
   ScrollPanel,
@@ -12,7 +14,7 @@ import {
   TextField,
   ToggleField,
 } from "@decky/ui";
-import { FC, ReactNode, useEffect, useMemo, useState } from "react";
+import { FC, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { FaTerminal } from "react-icons/fa";
 
 type CodexState = {
@@ -696,9 +698,10 @@ const ChatItem: FC<ChatItemProps> = ({ thread, onSelect }) => {
 
 type TranscriptCardProps = {
   item: TranscriptItem;
+  onDirection: (event: GamepadEvent) => void;
 };
 
-const TranscriptCard: FC<TranscriptCardProps> = ({ item }) => {
+const TranscriptCard: FC<TranscriptCardProps> = ({ item, onDirection }) => {
   const kindClass = `codexRemoteTranscript${item.kind.charAt(0).toUpperCase()}${item.kind.slice(1)}`;
   const title = item.title || transcriptLabel[item.kind] || "Event";
   const isCodeLike = item.kind === "command" || item.kind === "tool" || item.kind === "file";
@@ -713,6 +716,8 @@ const TranscriptCard: FC<TranscriptCardProps> = ({ item }) => {
       onFocus={(event) => {
         (event.currentTarget as HTMLElement).scrollIntoView({ block: "nearest", behavior: "smooth" });
       }}
+      onButtonDown={onDirection}
+      onGamepadDirection={onDirection}
       role="article"
       tabIndex={0}
     >
@@ -741,6 +746,7 @@ const CodexRemotePanel: FC = () => {
   const [devices, setDevices] = useState<DiscoveredDevice[]>([]);
   const [accountMessage, setAccountMessage] = useState("");
   const [login, setLogin] = useState<ChatGptLogin | null>(null);
+  const transcriptElementRef = useRef<HTMLDivElement | null>(null);
 
   const endpoint = useMemo(
     () => (settings.host ? `ws://${settings.host}:${settings.port}` : "not configured"),
@@ -908,6 +914,22 @@ const CodexRemotePanel: FC = () => {
     } catch (error) {
       console.warn("[Codex Remote] Select chat failed", error);
       setActionMessage("Chat switch failed.");
+    }
+  };
+
+  const scrollTranscriptBy = (amount: number) => {
+    transcriptElementRef.current?.scrollBy({ top: amount, behavior: "smooth" });
+  };
+
+  const handleTranscriptDirection = (event: GamepadEvent) => {
+    if (event.detail.button === GamepadButton.DIR_DOWN) {
+      event.preventDefault();
+      event.stopPropagation();
+      scrollTranscriptBy(event.detail.is_repeat ? 72 : 104);
+    } else if (event.detail.button === GamepadButton.DIR_UP) {
+      event.preventDefault();
+      event.stopPropagation();
+      scrollTranscriptBy(event.detail.is_repeat ? -72 : -104);
     }
   };
 
@@ -1089,9 +1111,19 @@ const CodexRemotePanel: FC = () => {
               <ScrollPanelGroup>
                 <ScrollPanel>
                   <Focusable className="codexRemoteScrollInner" flow-children="column" tabIndex={0}>
-                    <div className="codexRemoteLog">
+                    <div
+                      className="codexRemoteLog"
+                      onWheel={(event) => {
+                        transcriptElementRef.current?.scrollBy({ top: event.deltaY });
+                      }}
+                      ref={transcriptElementRef}
+                    >
                       {transcript.map((item, index) => (
-                        <TranscriptCard item={item} key={`${item.id}-${index}`} />
+                        <TranscriptCard
+                          item={item}
+                          key={`${item.id}-${index}`}
+                          onDirection={handleTranscriptDirection}
+                        />
                       ))}
                     </div>
                   </Focusable>
