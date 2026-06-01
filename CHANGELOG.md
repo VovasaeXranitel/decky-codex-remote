@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.1.24 - 2026-06-01
+
+Wait for the first Codex snapshot before reporting connected.
+
+- Fix a backend race where the WebSocket was marked connected before `initialize` and the first thread snapshot completed.
+- Prevent the UI from briefly showing stale disconnected state after a successful link.
+- Keep connection initialization as a transient state instead of surfacing it as an error.
+
+## 0.1.23 - 2026-06-01
+
+Fix setup toggle behavior.
+
+- Only force setup open when no host is configured.
+- Make the header Hide button actually close setup when a host already exists.
+- Allow the main remote screen to show even if the configured server is currently offline.
+
+## 0.1.22 - 2026-06-01
+
+Keep setup mode focused and prevent bottom clipping.
+
+- Hide chat, transcript, and composer while the connection setup panel is open.
+- Reserve setup mode for LAN scan, link, ChatGPT, and advanced connection controls.
+- Keep the main Codex remote screen compact after setup is hidden or the app is connected.
+
+## 0.1.21 - 2026-06-01
+
+Tighten the real Steam Deck panel layout.
+
+- Verify the Codex panel through the Steam QuickAccess DevTools target.
+- Reduce transcript height so the composer stays visible in the Deck panel.
+- Clamp the current task text to avoid pushing controls off-screen.
+- Style the transcript scrollbar to better match the dark Codex panel.
+- Shorten backend current-task snippets.
+
 ## 0.1.20 - 2026-05-31
 
 Make the panel smarter and closer to a real Codex remote client.

@@ -1,15 +1,20 @@
-# Codex Remote v0.1.20
+# Codex Remote v0.1.24
 
-Smarter Deck panel controls.
+Connection readiness fix.
 
 ## Highlights
 
-- Adds a searchable chat picker with loaded-chat markers.
-- Adds quick commands for Continue, Explain, Retry, and Summary.
-- Turns approvals into one focused card with command details and Approve/Deny actions.
-- Shows a more useful current task derived from the latest Codex event.
-- Keeps transcript auto-scroll and structured cards for messages, commands, tools, files, approvals, and errors.
-- Verified through package build and Python backend checks.
+- Waits for Codex App Server `initialize` and the first thread snapshot before reporting Connected.
+- Prevents stale disconnected UI immediately after a successful WebSocket link.
+- Treats connection initialization as a transient state instead of a failure.
+- Fixes the header Hide button so it actually closes setup when a host is configured.
+- Only forces setup open when no host is configured.
+- Lets the main remote screen show even if the configured Codex server is currently offline.
+- Hides chat, transcript, and composer while setup is open so the bottom of the panel is not clipped.
+- Keeps setup focused on Scan, Link, ChatGPT, advanced settings, and diagnostics.
+- Keeps the compact transcript, clamped current task, and softer scrollbar from v0.1.21.
+- Keeps searchable chats, quick commands, focused approvals, structured transcript cards, and auto-scroll from v0.1.20.
+- Verified through package build, Python backend checks, Deck install, Decky logs, and live QuickAccess inspection.
 
 ## Install
 

@@ -80,7 +80,7 @@ class CodexAppClient:
             with self._lock:
                 if self._connected:
                     return {"ok": True, "message": "Connected."}
-                if self._error and self._error != "Not connected.":
+                if self._error and self._error not in {"Not connected.", "Initializing Codex App Server connection..."}:
                     return {"ok": False, "message": self._error}
             time.sleep(0.05)
 
@@ -162,8 +162,9 @@ class CodexAppClient:
         while not self._stop.is_set():
             try:
                 self._connect_socket()
-                self._connected = True
-                self._error = ""
+                with self._lock:
+                    self._connected = False
+                    self._error = "Initializing Codex App Server connection..."
                 self._rpc("initialize", {
                     "clientInfo": {
                         "name": "codex-remote-decky",
@@ -172,7 +173,10 @@ class CodexAppClient:
                     },
                     "capabilities": {"experimentalApi": True},
                 }, timeout=8)
-                self._refresh_snapshot()
+                self._refresh_snapshot(force=True)
+                with self._lock:
+                    self._connected = True
+                    self._error = ""
                 while not self._stop.is_set():
                     try:
                         self._receive_once(timeout=1.0)
@@ -349,8 +353,8 @@ class CodexAppClient:
             plan = params.get("planType")
             self._add_event("event", "Account", f"{mode}{f' ({plan})' if plan else ''}", "completed")
 
-    def _refresh_snapshot(self) -> None:
-        if not self._connected:
+    def _refresh_snapshot(self, force: bool = False) -> None:
+        if not force and not self._connected:
             return
         try:
             loaded = self._rpc("thread/loaded/list", {"limit": 10}, timeout=4)
@@ -564,7 +568,7 @@ class CodexAppClient:
 
     def _one_line(self, value: str) -> str:
         cleaned = " ".join(str(value).split())
-        return self._truncate(cleaned, 110)
+        return self._truncate(cleaned, 90)
 
     def _find_active_turn_id(self, thread: dict[str, Any]) -> str | None:
         for turn in reversed(thread.get("turns") or []):

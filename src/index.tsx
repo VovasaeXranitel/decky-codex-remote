@@ -439,6 +439,10 @@ const styles = `
   color: #e6e6e8;
   font-size: 12px;
   line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   overflow-wrap: anywhere;
 }
 
@@ -452,18 +456,31 @@ const styles = `
 .codexRemoteScrollFrame {
   border: 1px solid #222934;
   border-radius: 5px;
-  max-height: 330px;
-  min-height: 170px;
+  max-height: 245px;
+  min-height: 180px;
   overflow: hidden;
 }
 
 .codexRemoteScrollInner {
-  max-height: 330px;
-  min-height: 170px;
+  max-height: 245px;
+  min-height: 180px;
   overflow-y: auto;
   padding: 6px;
   scroll-padding: 14px 0;
   scrollbar-width: thin;
+}
+
+.codexRemoteScrollInner::-webkit-scrollbar {
+  width: 5px;
+}
+
+.codexRemoteScrollInner::-webkit-scrollbar-track {
+  background: #11151c;
+}
+
+.codexRemoteScrollInner::-webkit-scrollbar-thumb {
+  background: #3a4250;
+  border-radius: 999px;
 }
 
 .codexRemoteMessage {
@@ -651,8 +668,8 @@ const styles = `
   border: 1px solid #303744 !important;
   box-shadow: none !important;
   color: #d7dae0 !important;
-  height: 48px !important;
-  min-height: 48px !important;
+  height: 42px !important;
+  min-height: 42px !important;
 }
 
 .codexRemoteTextArea .DialogInput,
@@ -662,8 +679,8 @@ const styles = `
   border: 1px solid #303744 !important;
   box-shadow: none !important;
   color: #d7dae0 !important;
-  height: 48px !important;
-  min-height: 48px !important;
+  height: 42px !important;
+  min-height: 42px !important;
 }
 
 .codexRemoteTextArea .DialogLabel {
@@ -804,7 +821,9 @@ const CodexRemotePanel: FC = () => {
     () => (settings.host ? `ws://${settings.host}:${settings.port}` : "not configured"),
     [settings.host, settings.port],
   );
-  const setupOpen = showSetup || state.status === "disconnected";
+  const setupRequired = state.status === "disconnected" && !settings.host;
+  const setupOpen = showSetup || setupRequired;
+  const mainOpen = !setupOpen;
   const normalizedChatQuery = chatQuery.trim().toLowerCase();
   const visibleThreads = state.threads
     .filter((thread) => !normalizedChatQuery || thread.title.toLowerCase().includes(normalizedChatQuery))
@@ -1000,7 +1019,7 @@ const CodexRemotePanel: FC = () => {
             <div className="codexRemoteTitle">Remote</div>
             <div className="codexRemoteEndpoint">{endpoint}</div>
             <div className="codexRemoteHeaderActions">
-              <CodexButton compact variant="quiet" onClick={() => setShowSetup(!showSetup)}>
+              <CodexButton compact variant="quiet" onClick={() => setShowSetup(!setupOpen)}>
                 {setupOpen ? "Hide" : "Setup"}
               </CodexButton>
               <CodexButton compact variant="quiet" onClick={refreshState}>Sync</CodexButton>
@@ -1012,42 +1031,44 @@ const CodexRemotePanel: FC = () => {
           </div>
         </div>
 
-        <PanelSectionRow>
-          <div className="codexRemoteSection">
-            <div className="codexRemoteSectionHeader">
-              <div>
-                <div className="codexRemoteEyebrow">Chat</div>
-                <div className="codexRemoteThread">{state.thread}</div>
-              </div>
-              <CodexButton compact variant="quiet" onClick={() => setShowChats(!showChats)}>
-                {showChats ? "Close" : "Change"}
-              </CodexButton>
-            </div>
-            {showChats && (
-              <div>
-                <div className="codexRemoteChatSearch">
-                  <TextField
-                    label="Find chat"
-                    value={chatQuery}
-                    onChange={(event) => setChatQuery(event.target.value)}
-                  />
+        {mainOpen && (
+          <PanelSectionRow>
+            <div className="codexRemoteSection">
+              <div className="codexRemoteSectionHeader">
+                <div>
+                  <div className="codexRemoteEyebrow">Chat</div>
+                  <div className="codexRemoteThread">{state.thread}</div>
                 </div>
-                <div className="codexRemoteChatList">
-                  {visibleThreads.map((thread) => (
-                    <ChatItem
-                      key={thread.id}
-                      thread={thread}
-                      onSelect={() => runSelectThread(thread.id)}
+                <CodexButton compact variant="quiet" onClick={() => setShowChats(!showChats)}>
+                  {showChats ? "Close" : "Change"}
+                </CodexButton>
+              </div>
+              {showChats && (
+                <div>
+                  <div className="codexRemoteChatSearch">
+                    <TextField
+                      label="Find chat"
+                      value={chatQuery}
+                      onChange={(event) => setChatQuery(event.target.value)}
                     />
-                  ))}
-                  {!visibleThreads.length && (
-                    <div className="codexRemoteMessage codexRemoteMessageDim">No matching Codex chats.</div>
-                  )}
+                  </div>
+                  <div className="codexRemoteChatList">
+                    {visibleThreads.map((thread) => (
+                      <ChatItem
+                        key={thread.id}
+                        thread={thread}
+                        onSelect={() => runSelectThread(thread.id)}
+                      />
+                    ))}
+                    {!visibleThreads.length && (
+                      <div className="codexRemoteMessage codexRemoteMessageDim">No matching Codex chats.</div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </PanelSectionRow>
+              )}
+            </div>
+          </PanelSectionRow>
+        )}
 
         {setupOpen && (
           <div className="codexRemoteSetup">
@@ -1140,14 +1161,16 @@ const CodexRemotePanel: FC = () => {
           </div>
         )}
 
-        <PanelSectionRow>
-          <div className="codexRemoteWork">
-            <div>
-              <div className="codexRemoteEyebrow">Current task</div>
-              <div className="codexRemoteTask">{state.task}</div>
+        {mainOpen && (
+          <PanelSectionRow>
+            <div className="codexRemoteWork">
+              <div>
+                <div className="codexRemoteEyebrow">Current task</div>
+                <div className="codexRemoteTask">{state.task}</div>
+              </div>
             </div>
-          </div>
-        </PanelSectionRow>
+          </PanelSectionRow>
+        )}
 
         {state.approvalText && (
           <PanelSectionRow>
@@ -1169,71 +1192,75 @@ const CodexRemotePanel: FC = () => {
           </PanelSectionRow>
         )}
 
-        <PanelSectionRow>
-          <div>
-            <div className="codexRemoteTranscriptHeader">
-              <div className="codexRemoteEyebrow">Transcript</div>
-              <div className="codexRemoteTranscriptCount">{transcript.length}</div>
+        {mainOpen && (
+          <PanelSectionRow>
+            <div>
+              <div className="codexRemoteTranscriptHeader">
+                <div className="codexRemoteEyebrow">Transcript</div>
+                <div className="codexRemoteTranscriptCount">{transcript.length}</div>
+              </div>
+              <div className="codexRemoteScrollFrame">
+                <ScrollPanelGroup>
+                  <ScrollPanel>
+                    <Focusable className="codexRemoteScrollInner" flow-children="column" tabIndex={0}>
+                      <div
+                        className="codexRemoteLog"
+                        onWheel={(event) => {
+                          transcriptElementRef.current?.scrollBy({ top: event.deltaY });
+                        }}
+                        ref={transcriptElementRef}
+                      >
+                        {transcript.map((item, index) => (
+                          <TranscriptCard item={item} key={`${item.id}-${index}`} />
+                        ))}
+                      </div>
+                    </Focusable>
+                  </ScrollPanel>
+                </ScrollPanelGroup>
+              </div>
             </div>
-            <div className="codexRemoteScrollFrame">
-              <ScrollPanelGroup>
-                <ScrollPanel>
-                  <Focusable className="codexRemoteScrollInner" flow-children="column" tabIndex={0}>
-                    <div
-                      className="codexRemoteLog"
-                      onWheel={(event) => {
-                        transcriptElementRef.current?.scrollBy({ top: event.deltaY });
-                      }}
-                      ref={transcriptElementRef}
-                    >
-                      {transcript.map((item, index) => (
-                        <TranscriptCard item={item} key={`${item.id}-${index}`} />
-                      ))}
-                    </div>
-                  </Focusable>
-                </ScrollPanel>
-              </ScrollPanelGroup>
-            </div>
-          </div>
-        </PanelSectionRow>
+          </PanelSectionRow>
+        )}
 
-        <PanelSectionRow>
-          <div className="codexRemoteComposer">
-            <div className="codexRemoteQuickGrid">
-              {quickActions.map((action) => (
+        {mainOpen && (
+          <PanelSectionRow>
+            <div className="codexRemoteComposer">
+              <div className="codexRemoteQuickGrid">
+                {quickActions.map((action) => (
+                  <CodexButton
+                    key={action.label}
+                    compact
+                    variant="quiet"
+                    onClick={() => runAction("reply", action.prompt)}
+                    disabled={state.status === "disconnected" || !state.threadId}
+                  >
+                    {action.label}
+                  </CodexButton>
+                ))}
+              </div>
+              <div className="codexRemoteTextArea">
+                <TextField
+                  label="Message"
+                  value={reply}
+                  onChange={(event) => setReply(event.target.value)}
+                />
+              </div>
+              <div className="codexRemoteActionGrid">
+                <CodexButton compact variant="primary" onClick={() => runAction("reply", reply)} disabled={!reply.trim()}>
+                  Send
+                </CodexButton>
                 <CodexButton
-                  key={action.label}
                   compact
                   variant="quiet"
-                  onClick={() => runAction("reply", action.prompt)}
-                  disabled={state.status === "disconnected" || !state.threadId}
+                  onClick={() => runAction("pause")}
+                  disabled={state.status !== "working"}
                 >
-                  {action.label}
+                  Pause
                 </CodexButton>
-              ))}
+              </div>
             </div>
-            <div className="codexRemoteTextArea">
-              <TextField
-                label="Message"
-                value={reply}
-                onChange={(event) => setReply(event.target.value)}
-              />
-            </div>
-            <div className="codexRemoteActionGrid">
-              <CodexButton compact variant="primary" onClick={() => runAction("reply", reply)} disabled={!reply.trim()}>
-                Send
-              </CodexButton>
-              <CodexButton
-                compact
-                variant="quiet"
-                onClick={() => runAction("pause")}
-                disabled={state.status !== "working"}
-              >
-                Pause
-              </CodexButton>
-            </div>
-          </div>
-        </PanelSectionRow>
+          </PanelSectionRow>
+        )}
         {actionMessage && (
           <PanelSectionRow>
             <div className="codexRemoteMessage codexRemoteMessageDim">{actionMessage}</div>
