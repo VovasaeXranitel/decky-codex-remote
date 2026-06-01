@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.27 - 2026-06-01
+
+Split the Quick Access UI into focused pages.
+
+- Add compact page navigation for Remote, Chats, Auth, Setup, and Log.
+- Move chat selection/search into a dedicated Chats page.
+- Move ChatGPT account checks and device-code login into a dedicated Auth page.
+- Move LAN scan, link, diagnostics, host, port, token, and live update settings into Setup.
+- Add a lightweight Log page for connection, account, action, and App Server messages.
+- Keep the Remote page focused on current chat, task, approvals, transcript, quick actions, and composer.
+
 ## 0.1.26 - 2026-06-01
 
 Secure App Server setup pass.

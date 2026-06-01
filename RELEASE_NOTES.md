@@ -1,14 +1,16 @@
-# Codex Remote v0.1.26
+# Codex Remote v0.1.27
 
-Secure App Server setup pass.
+Focused multi-page Quick Access UI.
 
 ## Highlights
 
-- Requires an App Server capability token before opening the WebSocket control channel.
-- Keeps LAN scan as `/readyz` discovery while `Link` validates the token.
-- Promotes `Account` into setup and moves ChatGPT device-code login into an Account card.
-- Shows token-specific feedback for `401`/`403` WebSocket handshake failures.
-- Updates README setup/security notes to match OpenAI's Codex App Server documentation.
+- Adds compact page navigation for Remote, Chats, Auth, Setup, and Log.
+- Keeps the Remote page focused on current chat, task, approvals, transcript, quick actions, and composer.
+- Moves chat search and selection into a dedicated Chats page.
+- Moves ChatGPT account checks and device-code login into a dedicated Auth page.
+- Moves LAN scan, Link, Check, Disconnect, host, port, token, and live updates into Setup.
+- Adds a lightweight Log page for connection, account, action, and App Server messages.
+- Keeps the secure App Server token flow from v0.1.26.
 - Waits for Codex App Server `initialize` and the first thread snapshot before reporting Connected.
 - Prevents stale disconnected UI immediately after a successful WebSocket link.
 - Treats connection initialization as a transient state instead of a failure.

@@ -9,6 +9,7 @@ The plugin is designed to be account-neutral. It does not include an OpenAI API 
 ## Features
 
 - Codex-style Decky side panel.
+- Compact pages for Remote, Chats, Auth, Setup, and Log.
 - Secure setup mode for host, port, App Server capability token, LAN scan, and diagnostics.
 - LAN scan for Codex App Server discovery.
 - ChatGPT device-code login through Codex App Server.
@@ -51,11 +52,11 @@ sudo systemctl restart plugin_loader.service
 
 1. Start Codex App Server on the PC where Codex App is running.
 2. Open the Codex Remote plugin on Steam Deck.
-3. Press `Setup`.
-4. Press `Scan`, or enter the PC host and port manually under `More`.
+3. Open the `Setup` page.
+4. Press `Scan`, or enter the PC host and port manually on the `Setup` page.
 5. Enter the App Server capability token for the user's own Codex App Server.
 6. Press `Link`.
-7. Press `Account`.
+7. Open the `Auth` page and press `Check`.
 8. If Codex is not signed in, press `Login`, then open the shown URL and enter the shown code.
 
 Windows Firewall example for the default port:
@@ -110,19 +111,19 @@ For ChatGPT sign-in, the plugin uses Codex App Server's official device-code flo
 - Make sure Steam Deck and PC are on the same trusted LAN.
 - Make sure Codex App Server listens on `0.0.0.0`, not only `127.0.0.1`.
 - Open the App Server TCP port in the PC firewall.
-- Try entering the PC LAN IP manually under `Setup -> More`.
+- Try entering the PC LAN IP manually on the `Setup` page.
 - Scan does not check the token. It only checks `/readyz`.
 
 ### Link fails
 
 - Check that the host, port, and token match the running Codex App Server.
-- Press `Check` under `Setup -> More`.
+- Press `Check` on the `Setup` page.
 - Restart Codex App Server and press `Sync`.
 - If the error is `401` or `403`, rotate/copy the App Server token again.
 
 ### ChatGPT login does not appear
 
-- Press `Account` in `Setup` to check the current App Server account state, then press `Login` in the Account card.
+- Open the `Auth` page, press `Check`, then press `Login` if Codex App Server reports no ChatGPT account.
 - The plugin does not collect ChatGPT credentials. It only displays the device-code URL/code returned by Codex App Server.
 
 ### Buttons look disabled
