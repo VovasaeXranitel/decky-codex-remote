@@ -6,10 +6,10 @@ The plugin is designed to be account-neutral. It does not include an OpenAI API 
 
 > Alpha status: Codex App Server WebSocket support is currently experimental upstream. This plugin is usable for testing, but the protocol may change.
 
-## Current MVP
+## Features
 
 - Codex-style Decky side panel.
-- Host, port, token, and auto-refresh settings.
+- Focused setup mode for host, port, token, LAN scan, and diagnostics.
 - LAN scan for Codex App Server discovery.
 - ChatGPT device-code login through Codex App Server.
 - Chat picker with user-facing Codex thread names/previews.
@@ -21,7 +21,7 @@ The plugin is designed to be account-neutral. It does not include an OpenAI API 
 - Python backend for persisted plugin settings.
 - Direct Codex App Server WebSocket JSON-RPC client in the plugin backend.
 
-The current MVP can connect to Codex App Server, list/read/select threads, send replies, interrupt an active turn, and answer App Server approval requests that are routed to this client.
+The plugin can connect to Codex App Server, list/read/select threads, send replies, interrupt an active turn, and answer App Server approval requests that are routed to this client.
 
 ## Target Connection
 
@@ -34,23 +34,39 @@ Steam Deck Decky plugin
 
 No separate bridge service is planned.
 
-## User Setup
+## Install
 
 1. Install Decky Loader on the Steam Deck.
 2. Download the latest `CodexRemote.zip` release and extract it.
 3. Copy the extracted `CodexRemote` folder to `/home/deck/homebrew/plugins/CodexRemote`.
 4. Restart Decky Loader.
-5. Start Codex App Server on the PC where Codex App is running.
-6. Open the plugin settings on Steam Deck.
-7. Press `Scan LAN`, or enter the PC host and port manually.
-8. Enter the App Server token for the user's own Codex App Server.
-9. Press `Connect`.
-10. If Codex is not signed in, press `Sign in ChatGPT`, then open the shown URL and enter the shown code.
 
 Restart Decky Loader:
 
 ```bash
-systemctl --user restart plugin_loader.service
+sudo systemctl restart plugin_loader.service
+```
+
+## User Setup
+
+1. Start Codex App Server on the PC where Codex App is running.
+2. Open the Codex Remote plugin on Steam Deck.
+3. Press `Setup`.
+4. Press `Scan`, or enter the PC host and port manually under `More`.
+5. Enter the App Server token for the user's own Codex App Server.
+6. Press `Link`.
+7. If Codex is not signed in, press `ChatGPT`, then open the shown URL and enter the shown code.
+
+Windows Firewall example for the default port:
+
+```powershell
+New-NetFirewallRule `
+  -DisplayName "Codex App Server 43871" `
+  -Direction Inbound `
+  -Action Allow `
+  -Protocol TCP `
+  -LocalPort 43871 `
+  -Profile Private
 ```
 
 Codex App Server example:
@@ -68,17 +84,6 @@ Keep the listener on a trusted LAN and use a strong token.
 3. Codex App Server owns ChatGPT/OpenAI authentication.
 4. If sign-in is needed, the plugin starts the official ChatGPT device-code flow and displays the URL/code.
 
-Legacy manual setup:
-
-1. Install Decky Loader on the Steam Deck.
-2. Install this plugin into Decky.
-3. Start Codex App Server on the PC where Codex App is running.
-4. Open the plugin settings on Steam Deck.
-5. Press `Scan LAN`, or enter the PC host and port manually.
-6. Enter the App Server token for the user's own Codex App Server.
-7. Press `Connect`.
-8. If Codex is not signed in, press `Sign in ChatGPT`, then open the shown URL and enter the shown code.
-
 Default port placeholder:
 
 ```text
@@ -88,6 +93,32 @@ Default port placeholder:
 The plugin should not ask for an OpenAI username, password, API key, or ChatGPT session. Codex App on the PC owns OpenAI authentication. The Decky plugin only authenticates to the user's own Codex App Server using the App Server token.
 
 For ChatGPT sign-in, the plugin uses Codex App Server's official device-code flow. The Steam Deck only displays the `verificationUrl` and `userCode`; the actual ChatGPT login happens in the browser on the user's chosen device.
+
+## Troubleshooting
+
+### LAN scan finds nothing
+
+- Make sure Steam Deck and PC are on the same trusted LAN.
+- Make sure Codex App Server listens on `0.0.0.0`, not only `127.0.0.1`.
+- Open the App Server TCP port in the PC firewall.
+- Try entering the PC LAN IP manually under `Setup -> More`.
+
+### Link fails
+
+- Check that the host, port, and token match the running Codex App Server.
+- Press `Check` under `Setup -> More`.
+- Restart Codex App Server and press `Sync`.
+
+### ChatGPT login does not appear
+
+- Press `Account` under `Setup -> More` to check the current App Server account state.
+- The plugin does not collect ChatGPT credentials. It only displays the device-code URL/code returned by Codex App Server.
+
+### Buttons look disabled
+
+- Connect to Codex App Server first.
+- Select a chat if there are multiple threads.
+- `Pause` is enabled only while Codex is actively working.
 
 ## Development
 

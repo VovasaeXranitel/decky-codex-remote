@@ -10,5 +10,7 @@ Recommended setup:
 - Use a strong capability token.
 - Do not expose the App Server port to the public internet.
 - Rotate the token if the Steam Deck or token file is lost.
+- Prefer a private firewall profile and a single inbound rule for the chosen App Server port.
+- Do not publish screenshots or logs that contain the App Server token.
 
 Please report security issues privately rather than opening a public issue.

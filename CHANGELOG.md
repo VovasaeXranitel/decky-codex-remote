@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.25 - 2026-06-01
+
+Clean up public setup and troubleshooting docs.
+
+- Replace MVP wording with feature-oriented release documentation.
+- Remove duplicate legacy setup instructions.
+- Add Windows Firewall guidance for the default App Server port.
+- Add troubleshooting for LAN scan, linking, ChatGPT login, and disabled controls.
+- Expand security notes around firewall scope and token exposure.
+
 ## 0.1.24 - 2026-06-01
 
 Wait for the first Codex snapshot before reporting connected.

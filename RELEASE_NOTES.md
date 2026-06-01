@@ -1,9 +1,13 @@
-# Codex Remote v0.1.24
+# Codex Remote v0.1.25
 
-Connection readiness fix.
+Public setup documentation pass.
 
 ## Highlights
 
+- Cleans up the README for public users instead of MVP-only development.
+- Adds Windows Firewall guidance for the default Codex App Server port.
+- Adds troubleshooting for LAN scan, Link, ChatGPT login, and disabled controls.
+- Expands security notes around firewall scope and token exposure.
 - Waits for Codex App Server `initialize` and the first thread snapshot before reporting Connected.
 - Prevents stale disconnected UI immediately after a successful WebSocket link.
 - Treats connection initialization as a transient state instead of a failure.
