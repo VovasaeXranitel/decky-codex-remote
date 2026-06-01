@@ -9,7 +9,7 @@ The plugin is designed to be account-neutral. It does not include an OpenAI API 
 ## Features
 
 - Codex-style Decky side panel.
-- Compact pages for Remote, Chats, Auth, Setup, and Log.
+- Compact pages for Remote, Chats, Auth, Setup, and Log with a Decky-native view selector.
 - Secure setup mode for host, port, App Server capability token, LAN scan, and diagnostics.
 - LAN scan for Codex App Server discovery.
 - ChatGPT device-code login through Codex App Server.

@@ -1,10 +1,12 @@
-# Codex Remote v0.1.27
+# Codex Remote v0.1.28
 
-Focused multi-page Quick Access UI.
+CSS Loader-inspired Decky UX polish.
 
 ## Highlights
 
-- Adds compact page navigation for Remote, Chats, Auth, Setup, and Log.
+- Replaces the custom tab strip with a native Decky `DropdownItem` view selector.
+- Uses `PanelSection` titles for the active view, closer to CSS Loader's Quick Access layout.
+- Keeps compact pages for Remote, Chats, Auth, Setup, and Log.
 - Keeps the Remote page focused on current chat, task, approvals, transcript, quick actions, and composer.
 - Moves chat search and selection into a dedicated Chats page.
 - Moves ChatGPT account checks and device-code login into a dedicated Auth page.

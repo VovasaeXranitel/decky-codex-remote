@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.28 - 2026-06-01
+
+Bring the Decky panel UX closer to CSS Loader.
+
+- Replace the custom five-tab strip with a native Decky `DropdownItem` view selector.
+- Use `PanelSection` titles for the active view, matching the compact CSS Loader structure.
+- Keep the multi-page split while reducing custom navigation chrome.
+- Preserve the compact Remote layout introduced in 0.1.27.
+
 ## 0.1.27 - 2026-06-01
 
 Split the Quick Access UI into focused pages.

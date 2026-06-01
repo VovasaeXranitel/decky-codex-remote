@@ -4,6 +4,7 @@ import {
   toaster,
 } from "@decky/api";
 import {
+  DropdownItem,
   Focusable,
   PanelSection,
   PanelSectionRow,
@@ -219,46 +220,6 @@ const styles = `
   gap: 8px;
   justify-content: flex-end;
   margin-top: 6px;
-}
-
-.codexRemotePageNav {
-  display: grid;
-  gap: 6px;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  margin: 4px 0 8px;
-}
-
-.codexRemotePageTab {
-  align-items: center;
-  background: #10141a;
-  border: 1px solid #252c36;
-  border-radius: 4px;
-  color: #aeb4bf;
-  display: flex;
-  font-size: 10px;
-  font-weight: 650;
-  height: 28px;
-  justify-content: center;
-  letter-spacing: 0;
-  min-width: 0;
-  overflow: hidden;
-  padding: 0 4px;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.codexRemotePageTabActive {
-  background: #1d232d;
-  border-color: #566174;
-  color: #f0f2f5;
-}
-
-.codexRemotePageTabFocus,
-.codexRemotePageTab:focus {
-  border-color: #8d98a8;
-  box-shadow: inset 0 0 0 1px #8d98a8;
-  color: #f5f6f8;
 }
 
 .codexRemotePage {
@@ -956,6 +917,8 @@ const CodexRemotePanel: FC = () => {
     { id: "settings", label: "Setup" },
     { id: "activity", label: "Log" },
   ];
+  const pageOptions = pages.map((item) => ({ data: item.id, label: item.label }));
+  const currentPageTitle = pages.find((item) => item.id === page)?.label || "Remote";
   const normalizedChatQuery = chatQuery.trim().toLowerCase();
   const visibleThreads = state.threads
     .filter((thread) => !normalizedChatQuery || thread.title.toLowerCase().includes(normalizedChatQuery))
@@ -1155,7 +1118,7 @@ const CodexRemotePanel: FC = () => {
   return (
     <div className="codexRemote">
       <style>{styles}</style>
-      <PanelSection>
+      <PanelSection title={currentPageTitle}>
         <div className="codexRemoteHeader">
           <div>
             <div className="codexRemoteTitle">Codex</div>
@@ -1170,26 +1133,15 @@ const CodexRemotePanel: FC = () => {
           </div>
         </div>
 
-        <div className="codexRemotePageNav">
-          {pages.map((item) => {
-            const active = page === item.id;
-            const activate = () => setPage(item.id);
-            return (
-              <Focusable
-                key={item.id}
-                className={`codexRemotePageTab${active ? " codexRemotePageTabActive" : ""}`}
-                focusClassName="codexRemotePageTabFocus"
-                onActivate={activate}
-                onClick={activate}
-                onOKButton={activate}
-                role="tab"
-                tabIndex={0}
-              >
-                {item.label}
-              </Focusable>
-            );
-          })}
-        </div>
+        <PanelSectionRow>
+          <DropdownItem
+            label="View"
+            menuLabel="Codex Remote view"
+            rgOptions={pageOptions}
+            selectedOption={page}
+            onChange={(option) => setPage(option.data as PageId)}
+          />
+        </PanelSectionRow>
 
         {page === "remote" && (
           <div className="codexRemotePage">
