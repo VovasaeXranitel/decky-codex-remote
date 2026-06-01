@@ -84,6 +84,12 @@ Keep the listener on a trusted LAN and use a strong token.
 3. Codex App Server owns ChatGPT/OpenAI authentication.
 4. If sign-in is needed, the plugin starts the official ChatGPT device-code flow and displays the URL/code.
 
+## Planned Official Relay Mode
+
+OpenAI already supports remote Codex control through the official ChatGPT mobile app and Codex App remote connections flow. A future version of this plugin may add an official relay mode so Steam Deck can connect through the same kind of account-based remote access instead of relying on LAN/VPN connectivity.
+
+This is not implemented yet because OpenAI has not documented a public third-party SDK or API for registering non-ChatGPT clients with the Codex remote relay. Until that exists, Codex Remote uses the documented Codex App Server path.
+
 Default port placeholder:
 
 ```text
