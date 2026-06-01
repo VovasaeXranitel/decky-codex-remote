@@ -76,15 +76,18 @@ class Plugin:
         settings = Plugin._read_settings(self)
         host = str(settings.get("host") or "").strip()
         port = str(settings.get("port") or "").strip()
+        token = str(settings.get("token") or "").strip()
 
         if not host:
             return {"ok": False, "message": "Host is not configured."}
+        if not token:
+            return {"ok": False, "message": "Server token is not configured. Scan can find the PC, but Link requires a capability token."}
 
         url = f"http://{host}:{port}/readyz"
         try:
             with request.urlopen(url, timeout=3) as response:
                 if response.status == 200:
-                    return {"ok": True, "message": "Codex App Server is reachable."}
+                    return {"ok": True, "message": "Codex App Server is reachable. Link validates the token."}
 
                 return {"ok": False, "message": f"Unexpected status: {response.status}"}
         except error.URLError as exc:
@@ -93,7 +96,10 @@ class Plugin:
             return {"ok": False, "message": f"Connection failed: {exc}"}
 
     async def connect(self) -> dict[str, Any]:
-        Plugin._client.configure(Plugin._read_settings(self))
+        settings = Plugin._read_settings(self)
+        if not str(settings.get("token") or "").strip():
+            return {"ok": False, "message": "App Server token is required. Start Codex with --ws-auth capability-token and paste the token here."}
+        Plugin._client.configure(settings)
         return Plugin._client.connect()
 
     async def disconnect(self) -> dict[str, Any]:

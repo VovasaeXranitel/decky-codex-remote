@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.26 - 2026-06-01
+
+Secure App Server setup pass.
+
+- Require an App Server capability token before opening the WebSocket control channel.
+- Keep LAN scan as `/readyz` discovery and make `Link` responsible for token validation.
+- Promote `Account` to the setup flow and move ChatGPT device-code login into an Account card.
+- Surface `401`/`403` WebSocket handshake failures as token-specific errors.
+- Update README setup/security notes to match OpenAI's Codex App Server documentation.
+
 ## 0.1.25 - 2026-06-01
 
 Clean up public setup and troubleshooting docs.

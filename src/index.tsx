@@ -645,7 +645,44 @@ const styles = `
   font-weight: 650;
 }
 
+.codexRemoteSetupNotice {
+  background: #151922;
+  border: 1px solid #3a4250;
+  border-left: 3px solid #d0c7a1;
+  border-radius: 5px;
+  color: #c7cbd3;
+  font-size: 11px;
+  line-height: 1.35;
+  padding: 8px 9px;
+}
+
+.codexRemoteAccount {
+  background: #12161d;
+  border: 1px solid #2d3440;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 9px;
+}
+
+.codexRemoteAccountBadge {
+  background: #1d232d;
+  border: 1px solid #3b4452;
+  border-radius: 999px;
+  color: #c9ced7;
+  flex: 0 0 auto;
+  font-size: 10px;
+  line-height: 1;
+  max-width: 90px;
+  overflow: hidden;
+  padding: 4px 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .codexRemoteApproval code,
+.codexRemoteAccount code,
 .codexRemoteCode {
   background: #0f1218;
   border: 1px solid #2a3039;
@@ -814,6 +851,7 @@ const CodexRemotePanel: FC = () => {
   const [actionMessage, setActionMessage] = useState("");
   const [devices, setDevices] = useState<DiscoveredDevice[]>([]);
   const [accountMessage, setAccountMessage] = useState("");
+  const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null);
   const [login, setLogin] = useState<ChatGptLogin | null>(null);
   const transcriptElementRef = useRef<HTMLDivElement | null>(null);
 
@@ -824,6 +862,8 @@ const CodexRemotePanel: FC = () => {
   const setupRequired = state.status === "disconnected" && !settings.host;
   const setupOpen = showSetup || setupRequired;
   const mainOpen = !setupOpen;
+  const hasEndpoint = Boolean(settings.host.trim() && settings.port.trim());
+  const hasSecureToken = Boolean(settings.token.trim());
   const normalizedChatQuery = chatQuery.trim().toLowerCase();
   const visibleThreads = state.threads
     .filter((thread) => !normalizedChatQuery || thread.title.toLowerCase().includes(normalizedChatQuery))
@@ -957,6 +997,7 @@ const CodexRemotePanel: FC = () => {
     try {
       await setSettings(settings);
       const result = await getAccount();
+      setAccountInfo(result);
       setAccountMessage(result.message);
       toaster.toast({ title: "Codex Remote", body: result.message });
       await refreshState();
@@ -971,6 +1012,9 @@ const CodexRemotePanel: FC = () => {
       await setSettings(settings);
       const result = await startChatGptLogin();
       setLogin(result);
+      if (result.ok) {
+        setAccountInfo(null);
+      }
       setAccountMessage(result.message);
       toaster.toast({ title: "Codex Remote", body: result.message });
     } catch (error) {
@@ -1083,13 +1127,18 @@ const CodexRemotePanel: FC = () => {
             <PanelSectionRow>
               <div className="codexRemoteActionGrid">
                 <CodexButton compact variant="primary" onClick={runScanLan}>Scan</CodexButton>
-                <CodexButton compact variant="primary" onClick={runConnect}>Link</CodexButton>
-                <CodexButton compact variant="quiet" onClick={runChatGptLogin}>ChatGPT</CodexButton>
+                <CodexButton compact variant="primary" onClick={runConnect} disabled={!hasEndpoint || !hasSecureToken}>Link</CodexButton>
+                <CodexButton compact variant="quiet" onClick={runGetAccount} disabled={!hasEndpoint || !hasSecureToken}>Account</CodexButton>
                 <CodexButton compact variant="quiet" onClick={() => setShowAdvanced(!showAdvanced)}>
                   {showAdvanced ? "Less" : "More"}
                 </CodexButton>
               </div>
             </PanelSectionRow>
+            {hasEndpoint && !hasSecureToken && (
+              <PanelSectionRow>
+                <div className="codexRemoteSetupNotice">Paste the App Server token to enable Link and Account.</div>
+              </PanelSectionRow>
+            )}
             {devices.map((device) => (
               <PanelSectionRow key={`${device.host}:${device.port}`}>
                 <div className="codexRemoteActionGridSingle">
@@ -1138,18 +1187,40 @@ const CodexRemotePanel: FC = () => {
                 <PanelSectionRow>
                   <div className="codexRemoteActionGrid">
                     <CodexButton compact variant="quiet" onClick={runConnectionTest}>Check</CodexButton>
-                    <CodexButton compact variant="quiet" onClick={runGetAccount}>Account</CodexButton>
+                    <CodexButton compact variant="quiet" onClick={runChatGptLogin} disabled={!hasEndpoint || !hasSecureToken}>ChatGPT</CodexButton>
                     <CodexButton compact variant="quiet" onClick={runDisconnect}>Disconnect</CodexButton>
                   </div>
                 </PanelSectionRow>
               </>
             )}
-            {login?.verificationUrl && login?.userCode && (
+            {(accountInfo?.account || accountInfo?.requiresOpenaiAuth !== undefined || login?.verificationUrl) && (
               <PanelSectionRow>
-                <div className="codexRemoteApproval">
-                  <div>Open URL and enter code.</div>
-                  <code>{login.verificationUrl}</code>
-                  <code>{login.userCode}</code>
+                <div className="codexRemoteAccount">
+                  <div className="codexRemoteApprovalTop">
+                    <div>
+                      <div className="codexRemoteEyebrow">Account</div>
+                      <div className="codexRemoteApprovalTitle">
+                        {accountInfo?.account?.email || accountInfo?.account?.type || "ChatGPT sign-in"}
+                      </div>
+                    </div>
+                    {accountInfo?.account?.planType && (
+                      <span className="codexRemoteAccountBadge">{accountInfo.account.planType}</span>
+                    )}
+                  </div>
+                  {accountInfo && !accountInfo.account && (
+                    <div className="codexRemoteMessage codexRemoteMessageDim">Not signed in on Codex App Server.</div>
+                  )}
+                  {login?.verificationUrl && login?.userCode && (
+                    <>
+                      <div className="codexRemoteMessage codexRemoteMessageDim">Open this URL and enter the code.</div>
+                      <code>{login.verificationUrl}</code>
+                      <code>{login.userCode}</code>
+                    </>
+                  )}
+                  <div className="codexRemoteActionGrid">
+                    <CodexButton compact variant="quiet" onClick={runGetAccount} disabled={!hasEndpoint || !hasSecureToken}>Refresh</CodexButton>
+                    <CodexButton compact variant="primary" onClick={runChatGptLogin} disabled={!hasEndpoint || !hasSecureToken}>Login</CodexButton>
+                  </div>
                 </div>
               </PanelSectionRow>
             )}

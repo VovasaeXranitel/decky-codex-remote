@@ -70,6 +70,9 @@ class CodexAppClient:
             if not self._settings.get("host"):
                 self._error = "Host is not configured."
                 return {"ok": False, "message": self._error}
+            if not self._settings.get("token"):
+                self._error = "App Server token is required."
+                return {"ok": False, "message": self._error}
 
             self._stop.clear()
             self._thread = threading.Thread(target=self._run, name="CodexAppClient", daemon=True)
@@ -235,7 +238,10 @@ class CodexAppClient:
                 raise RuntimeError("WebSocket handshake response too large.")
         head = response.split(b"\r\n\r\n", 1)[0].decode("iso-8859-1")
         if " 101 " not in head.split("\r\n", 1)[0]:
-            raise RuntimeError(head.split("\r\n", 1)[0])
+            status_line = head.split("\r\n", 1)[0]
+            if " 401 " in status_line or " 403 " in status_line:
+                raise RuntimeError(f"{status_line}. Check the App Server token.")
+            raise RuntimeError(status_line)
         accept = base64.b64encode(hashlib.sha1((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").encode("ascii")).digest()).decode("ascii")
         if accept.lower() not in head.lower():
             raise RuntimeError("Invalid WebSocket accept header.")
