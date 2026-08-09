@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.30 - 2026-08-09
+
+Split the backend into onion architecture layers.
+
+- Keep `main.py` as a thin Decky callable adapter.
+- Move defaults and settings normalization into the domain layer.
+- Move settings persistence, LAN discovery, and raw WebSocket transport into infrastructure adapters.
+- Move transcript mapping and Codex session orchestration into the application layer.
+- Add Python unit tests for settings, discovery, WebSocket frames, and transcript mapping.
+- Package the new Python package directory and build release zips with SteamOS-friendly path separators.
+
 ## 0.1.29 - 2026-08-09
 
 Ship the approved bottom-navigation frontend.

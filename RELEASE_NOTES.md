@@ -1,16 +1,17 @@
-# Codex Remote v0.1.29
+# Codex Remote v0.1.30
 
-Approved bottom-navigation frontend.
+Backend onion architecture refactor.
 
 ## Highlights
 
-- Replaces the `DropdownItem` view picker with a persistent bottom navigation bar.
-- Makes Remote the primary page for live Codex control.
-- Combines current chat and current task into a compact context block.
-- Gives the transcript more vertical room after removing the old view selector row.
-- Keeps Chats, Auth, Setup, and Log as separate focused pages under the same navigation model.
-- Keeps searchable chats, quick commands, focused approvals, structured transcript cards, and auto-scroll.
-- Keeps the secure Codex App Server token flow.
+- Keeps `main.py` as a thin Decky callable adapter.
+- Adds `codex_remote/domain` for defaults and settings normalization.
+- Adds `codex_remote/infrastructure` for settings persistence, LAN discovery, and WebSocket transport.
+- Adds `codex_remote/application` for Codex session orchestration and transcript mapping.
+- Adds Python unit tests around the backend seams.
+- Packages `codex_remote/` into Decky builds.
+- Builds release zips with SteamOS-friendly path separators.
+- Keeps the bottom-navigation frontend from v0.1.29.
 
 ## Install
 

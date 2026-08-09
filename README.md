@@ -9,7 +9,7 @@ The plugin is designed to be account-neutral. It does not include an OpenAI API 
 ## Features
 
 - Codex-style Decky side panel.
-- Compact pages for Remote, Chats, Auth, Setup, and Log with a Decky-native view selector.
+- Compact pages for Remote, Chats, Auth, Setup, and Log with persistent bottom navigation.
 - Secure setup mode for host, port, App Server capability token, LAN scan, and diagnostics.
 - LAN scan for Codex App Server discovery.
 - ChatGPT device-code login through Codex App Server.
@@ -19,7 +19,7 @@ The plugin is designed to be account-neutral. It does not include an OpenAI API 
 - Native Decky transcript scrolling with focusable transcript cards that scroll into view during gamepad navigation.
 - Transcript auto-scrolls to the latest message during refresh and streaming.
 - Controller-friendly `Approve`, `Deny`, `Pause`, and `Reply` actions.
-- Python backend for persisted plugin settings.
+- Onion-structured Python backend with Decky adapter, application, domain, and infrastructure layers.
 - Direct Codex App Server WebSocket JSON-RPC client in the plugin backend.
 
 The plugin can connect to Codex App Server, list/read/select threads, send replies, interrupt an active turn, and answer App Server approval requests that are routed to this client.
@@ -166,6 +166,7 @@ plugin.json
 package.json
 main.py
 codex_app_client.py
+codex_remote/
 README.md
 LICENSE
 dist/index.js
