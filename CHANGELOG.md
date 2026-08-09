@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.29 - 2026-08-09
+
+Ship the approved bottom-navigation frontend.
+
+- Replace the view dropdown with a persistent five-item bottom navigation bar.
+- Make the Remote page the primary surface with chat, task, approvals, transcript, quick actions, and composer visible together.
+- Combine chat context and current task into one compact block to reduce vertical noise.
+- Increase transcript space after removing the dropdown row.
+- Keep Chats, Auth, Setup, and Log as separate focused pages under the same navigation model.
+
 ## 0.1.28 - 2026-06-01
 
 Bring the Decky panel UX closer to CSS Loader.

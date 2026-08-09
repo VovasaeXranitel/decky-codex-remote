@@ -4,7 +4,6 @@ import {
   toaster,
 } from "@decky/api";
 import {
-  DropdownItem,
   Focusable,
   PanelSection,
   PanelSectionRow,
@@ -98,6 +97,19 @@ type ChatGptLogin = ConnectionCheck & {
 
 type PageId = "remote" | "chats" | "auth" | "settings" | "activity";
 
+type NavItem = {
+  id: PageId;
+  label: string;
+};
+
+const navItems: NavItem[] = [
+  { id: "remote", label: "Remote" },
+  { id: "chats", label: "Chats" },
+  { id: "auth", label: "Auth" },
+  { id: "settings", label: "Setup" },
+  { id: "activity", label: "Log" },
+];
+
 const defaultState: CodexState = {
   status: "disconnected",
   thread: "Decky remote",
@@ -173,7 +185,7 @@ const styles = `
   display: flex;
   gap: 10px;
   justify-content: space-between;
-  padding: 2px 0 6px;
+  padding: 0 0 4px;
 }
 
 .codexRemoteTitle,
@@ -225,7 +237,7 @@ const styles = `
 .codexRemotePage {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .codexRemoteDot {
@@ -281,8 +293,8 @@ const styles = `
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-top: 8px;
+  gap: 7px;
+  padding-top: 7px;
 }
 
 .codexRemoteButton {
@@ -351,14 +363,6 @@ const styles = `
 .codexRemoteButtonDisabled {
   color: #707783;
   opacity: 0.55;
-}
-
-.codexRemoteWork {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-bottom: 8px;
 }
 
 .codexRemoteSection {
@@ -465,18 +469,61 @@ const styles = `
 .codexRemoteScrollFrame {
   border: 1px solid #222934;
   border-radius: 5px;
-  max-height: 150px;
-  min-height: 128px;
+  max-height: 210px;
+  min-height: 170px;
   overflow: hidden;
 }
 
 .codexRemoteScrollInner {
-  max-height: 150px;
-  min-height: 128px;
+  max-height: 210px;
+  min-height: 170px;
   overflow-y: auto;
   padding: 6px;
   scroll-padding: 14px 0;
   scrollbar-width: thin;
+}
+
+.codexRemoteBottomNav {
+  background: #10141a;
+  border: 1px solid #252c36;
+  border-radius: 5px;
+  display: grid;
+  gap: 5px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-top: 6px;
+  padding: 5px;
+}
+
+.codexRemoteBottomNavItem {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #8f96a2;
+  display: flex;
+  font-size: 10px;
+  font-weight: 650;
+  height: 28px;
+  justify-content: center;
+  line-height: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 2px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.codexRemoteBottomNavItemActive {
+  background: #202731;
+  border-color: #4b5565;
+  color: #f2f3f5;
+}
+
+.codexRemoteBottomNavItemFocus,
+.codexRemoteBottomNavItem:focus {
+  border-color: #9aa3b2;
+  box-shadow: inset 0 0 0 1px #9aa3b2;
+  color: #ffffff;
 }
 
 .codexRemoteScrollInner::-webkit-scrollbar {
@@ -830,6 +877,36 @@ const CodexButton: FC<CodexButtonProps> = ({
   );
 };
 
+type BottomNavProps = {
+  page: PageId;
+  setPage: (page: PageId) => void;
+  items: NavItem[];
+};
+
+const BottomNav: FC<BottomNavProps> = ({ page, setPage, items }) => (
+  <Focusable className="codexRemoteBottomNav" flow-children="row" tabIndex={0}>
+    {items.map((item) => {
+      const active = page === item.id;
+      const activate = () => setPage(item.id);
+
+      return (
+        <Focusable
+          key={item.id}
+          className={`codexRemoteBottomNavItem${active ? " codexRemoteBottomNavItemActive" : ""}`}
+          focusClassName="codexRemoteBottomNavItemFocus"
+          onActivate={activate}
+          onClick={activate}
+          onOKButton={activate}
+          role="button"
+          tabIndex={0}
+        >
+          {item.label}
+        </Focusable>
+      );
+    })}
+  </Focusable>
+);
+
 type ChatItemProps = {
   thread: CodexThread;
   onSelect: () => void;
@@ -910,15 +987,6 @@ const CodexRemotePanel: FC = () => {
   );
   const hasEndpoint = Boolean(settings.host.trim() && settings.port.trim());
   const hasSecureToken = Boolean(settings.token.trim());
-  const pages: { id: PageId; label: string }[] = [
-    { id: "remote", label: "Remote" },
-    { id: "chats", label: "Chats" },
-    { id: "auth", label: "Auth" },
-    { id: "settings", label: "Setup" },
-    { id: "activity", label: "Log" },
-  ];
-  const pageOptions = pages.map((item) => ({ data: item.id, label: item.label }));
-  const currentPageTitle = pages.find((item) => item.id === page)?.label || "Remote";
   const normalizedChatQuery = chatQuery.trim().toLowerCase();
   const visibleThreads = state.threads
     .filter((thread) => !normalizedChatQuery || thread.title.toLowerCase().includes(normalizedChatQuery))
@@ -1118,7 +1186,7 @@ const CodexRemotePanel: FC = () => {
   return (
     <div className="codexRemote">
       <style>{styles}</style>
-      <PanelSection title={currentPageTitle}>
+      <PanelSection title="Codex Remote">
         <div className="codexRemoteHeader">
           <div>
             <div className="codexRemoteTitle">Codex</div>
@@ -1133,16 +1201,6 @@ const CodexRemotePanel: FC = () => {
           </div>
         </div>
 
-        <PanelSectionRow>
-          <DropdownItem
-            label="View"
-            menuLabel="Codex Remote view"
-            rgOptions={pageOptions}
-            selectedOption={page}
-            onChange={(option) => setPage(option.data as PageId)}
-          />
-        </PanelSectionRow>
-
         {page === "remote" && (
           <div className="codexRemotePage">
             <PanelSectionRow>
@@ -1154,11 +1212,6 @@ const CodexRemotePanel: FC = () => {
                   </div>
                   <CodexButton compact variant="quiet" onClick={() => setPage("chats")}>Change</CodexButton>
                 </div>
-              </div>
-            </PanelSectionRow>
-
-            <PanelSectionRow>
-              <div className="codexRemoteWork">
                 <div>
                   <div className="codexRemoteEyebrow">Current task</div>
                   <div className="codexRemoteTask">{state.task}</div>
@@ -1448,6 +1501,10 @@ const CodexRemotePanel: FC = () => {
             <div className="codexRemoteMessage codexRemoteMessageDim">{actionMessage}</div>
           </PanelSectionRow>
         )}
+
+        <PanelSectionRow>
+          <BottomNav page={page} setPage={setPage} items={navItems} />
+        </PanelSectionRow>
       </PanelSection>
     </div>
   );
