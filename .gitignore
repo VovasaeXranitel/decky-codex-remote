@@ -5,6 +5,8 @@ build/
 .downloads/
 .codex-app-schema/
 .local-token.txt
+.superpowers/
+codex-app-server.log
 __pycache__/
 *.pyc
 preview/*.png
