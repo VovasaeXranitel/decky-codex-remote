@@ -10,7 +10,16 @@ from codex_remote.infrastructure.settings_store import SettingsStore
 
 class SettingsStoreTest(unittest.TestCase):
     def test_normalize_settings_coerces_values_and_keeps_defaults(self) -> None:
-        settings = normalize_settings({"host": " 192.168.1.81 ", "port": 43871, "token": " abc ", "autoRefresh": 0})
+        settings = normalize_settings({
+            "host": " 192.168.1.81 ",
+            "port": 43871,
+            "token": " abc ",
+            "autoRefresh": 0,
+            "serverUrl": " ws://relay.example/ws ",
+            "proxyEnabled": 1,
+            "proxyHost": " 127.0.0.1 ",
+            "proxyPort": 12334,
+        })
 
         self.assertEqual(
             settings,
@@ -19,6 +28,10 @@ class SettingsStoreTest(unittest.TestCase):
                 "port": "43871",
                 "token": "abc",
                 "autoRefresh": False,
+                "serverUrl": "ws://relay.example/ws",
+                "proxyEnabled": True,
+                "proxyHost": "127.0.0.1",
+                "proxyPort": "12334",
             },
         )
 

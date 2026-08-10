@@ -1,17 +1,14 @@
-# Codex Remote v0.1.30
+# Codex Remote v0.1.33
 
-Backend onion architecture refactor.
+Connection-mode UX and diagnostics.
 
 ## Highlights
 
-- Keeps `main.py` as a thin Decky callable adapter.
-- Adds `codex_remote/domain` for defaults and settings normalization.
-- Adds `codex_remote/infrastructure` for settings persistence, LAN discovery, and WebSocket transport.
-- Adds `codex_remote/application` for Codex session orchestration and transcript mapping.
-- Adds Python unit tests around the backend seams.
-- Packages `codex_remote/` into Decky builds.
-- Builds release zips with SteamOS-friendly path separators.
-- Keeps the bottom-navigation frontend from v0.1.29.
+- Adds LAN/Remote URL mode selection on the Setup page.
+- Shows only the relevant endpoint fields for the selected mode.
+- Adds diagnostics for endpoint, token, proxy reachability, and VPN tunnel state.
+- Keeps optional HTTP CONNECT proxy support for split VPN clients.
+- Keeps remote endpoint hardening from v0.1.32.
 
 ## Install
 

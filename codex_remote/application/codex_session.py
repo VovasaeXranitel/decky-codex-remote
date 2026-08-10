@@ -4,6 +4,7 @@ import threading
 import time
 from typing import Any
 
+from codex_remote.domain.models import endpoint_configured, normalize_settings, proxy_config
 from codex_remote.application.transcript_mapper import TranscriptMapper
 from codex_remote.infrastructure.websocket_transport import WebSocketTransport
 
@@ -46,12 +47,7 @@ class CodexSession:
         }
 
     def configure(self, settings: dict[str, Any]) -> None:
-        normalized = {
-            "host": str(settings.get("host") or "").strip(),
-            "port": str(settings.get("port") or "43871").strip(),
-            "token": str(settings.get("token") or "").strip(),
-            "autoRefresh": bool(settings.get("autoRefresh", True)),
-        }
+        normalized = normalize_settings(settings)
 
         with self._lock:
             if normalized == self._settings and self._thread and self._thread.is_alive():
@@ -65,7 +61,7 @@ class CodexSession:
             if self._thread and self._thread.is_alive():
                 return {"ok": self._connected, "message": self._error if not self._connected else "Connected."}
 
-            if not self._settings.get("host"):
+            if not endpoint_configured(self._settings):
                 self._error = "Host is not configured."
                 return {"ok": False, "message": self._error}
             if not self._settings.get("token"):
@@ -206,7 +202,12 @@ class CodexSession:
         host = self._settings["host"]
         port = self._settings["port"]
         token = self._settings.get("token") or ""
-        self._transport.connect(host, port, token)
+        proxy = proxy_config(self._settings)
+        server_url = self._settings.get("serverUrl")
+        if server_url:
+            self._transport.connect_url(server_url, token, proxy)
+        else:
+            self._transport.connect(host, port, token, proxy)
 
     def _rpc(self, method: str, params: dict[str, Any] | None = None, timeout: float = 6) -> Any:
         with self._lock:

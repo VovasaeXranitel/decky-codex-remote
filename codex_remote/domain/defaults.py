@@ -1,8 +1,12 @@
 DEFAULT_SETTINGS = {
     "host": "",
     "port": "43871",
+    "serverUrl": "",
     "token": "",
     "autoRefresh": True,
+    "proxyEnabled": False,
+    "proxyHost": "127.0.0.1",
+    "proxyPort": "12334",
 }
 
 DISCONNECTED_STATE = {

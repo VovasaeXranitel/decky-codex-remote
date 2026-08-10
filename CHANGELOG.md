@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.1.33 - 2026-08-10
+
+Add connection-mode UX and diagnostics.
+
+- Add LAN/Remote URL mode selection on the Setup page.
+- Show only the relevant endpoint fields for the selected connection mode.
+- Add backend diagnostics for endpoint, token, proxy reachability, and VPN tunnel state.
+- Surface diagnostics as compact status rows in the Decky panel.
+- Update security notes for remote endpoints, proxy mode, VPN subscriptions, and public logs.
+
+## 0.1.32 - 2026-08-09
+
+Harden remote endpoint handling.
+
+- Treat `Server URL` as a first-class endpoint anywhere the backend checks connection readiness.
+- Move endpoint, `/readyz`, and proxy normalization into the domain layer.
+- Preserve immediately delivered WebSocket frame bytes after the HTTP upgrade response.
+- Add tests for remote endpoint readiness, proxy normalization, and handshake byte preservation.
+
+## 0.1.31 - 2026-08-09
+
+Add remote endpoint and VPN proxy plumbing.
+
+- Add optional `Server URL` setup for `ws://` and `wss://` Codex App Server endpoints.
+- Add optional HTTP CONNECT proxy settings for split VPN clients such as Hiddify's local mixed proxy.
+- Keep LAN host/port discovery as the default connection path.
+- Teach the backend WebSocket transport to tunnel through an HTTP proxy without losing handshake bytes.
+- Route `/readyz` diagnostics through the configured proxy when proxy mode is enabled.
+
 ## 0.1.30 - 2026-08-09
 
 Split the backend into onion architecture layers.

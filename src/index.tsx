@@ -60,8 +60,12 @@ type CodexThread = {
 type Settings = {
   host: string;
   port: string;
+  serverUrl: string;
   token: string;
   autoRefresh: boolean;
+  proxyEnabled: boolean;
+  proxyHost: string;
+  proxyPort: string;
 };
 
 type ConnectionCheck = {
@@ -93,6 +97,18 @@ type ChatGptLogin = ConnectionCheck & {
   loginId?: string;
   verificationUrl?: string;
   userCode?: string;
+};
+
+type DiagnosticCheck = {
+  id: string;
+  label: string;
+  status: "ok" | "failed" | "warning" | "skipped";
+  message: string;
+};
+
+type DiagnosticResult = {
+  ok: boolean;
+  checks: DiagnosticCheck[];
 };
 
 type PageId = "remote" | "chats" | "auth" | "settings" | "activity";
@@ -131,8 +147,12 @@ const defaultState: CodexState = {
 const defaultSettings: Settings = {
   host: "",
   port: "43871",
+  serverUrl: "",
   token: "",
   autoRefresh: true,
+  proxyEnabled: false,
+  proxyHost: "127.0.0.1",
+  proxyPort: "12334",
 };
 
 const getSettings = callable<[], Settings>("get_settings");
@@ -146,6 +166,7 @@ const disconnectServer = callable<[], ConnectionCheck>("disconnect");
 const scanLan = callable<[], ScanResult>("scan_lan");
 const getAccount = callable<[], AccountInfo>("get_account");
 const startChatGptLogin = callable<[], ChatGptLogin>("start_chatgpt_login");
+const getDiagnostics = callable<[], DiagnosticResult>("get_diagnostics");
 
 const statusLabel: Record<CodexState["status"], string> = {
   approval: "Needs approval",
@@ -724,6 +745,63 @@ const styles = `
   white-space: nowrap;
 }
 
+.codexRemoteModeGrid {
+  background: #10141a;
+  border: 1px solid #252c36;
+  border-radius: 5px;
+  display: grid;
+  gap: 5px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 5px;
+}
+
+.codexRemoteModeItem {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #9aa1ac;
+  display: flex;
+  font-size: 11px;
+  font-weight: 650;
+  height: 30px;
+  justify-content: center;
+}
+
+.codexRemoteModeItemActive {
+  background: #202731;
+  border-color: #4b5565;
+  color: #f2f3f5;
+}
+
+.codexRemoteDiagnosticList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.codexRemoteDiagnosticRow {
+  align-items: center;
+  background: #11151c;
+  border: 1px solid #252c36;
+  border-radius: 5px;
+  display: flex;
+  gap: 8px;
+  min-height: 34px;
+  padding: 7px 9px;
+}
+
+.codexRemoteDiagnosticText {
+  min-width: 0;
+}
+
+.codexRemoteDiagnosticMessage {
+  color: #8f96a2;
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .codexRemoteSetupNotice {
   background: #151922;
   border: 1px solid #3a4250;
@@ -979,13 +1057,15 @@ const CodexRemotePanel: FC = () => {
   const [accountMessage, setAccountMessage] = useState("");
   const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null);
   const [login, setLogin] = useState<ChatGptLogin | null>(null);
+  const [diagnostics, setDiagnostics] = useState<DiagnosticResult | null>(null);
   const transcriptElementRef = useRef<HTMLDivElement | null>(null);
 
   const endpoint = useMemo(
-    () => (settings.host ? `ws://${settings.host}:${settings.port}` : "not configured"),
-    [settings.host, settings.port],
+    () => (settings.serverUrl ? settings.serverUrl : settings.host ? `ws://${settings.host}:${settings.port}` : "not configured"),
+    [settings.host, settings.port, settings.serverUrl],
   );
-  const hasEndpoint = Boolean(settings.host.trim() && settings.port.trim());
+  const connectionMode = settings.serverUrl.trim() ? "remote" : "lan";
+  const hasEndpoint = Boolean(settings.serverUrl.trim() || (settings.host.trim() && settings.port.trim()));
   const hasSecureToken = Boolean(settings.token.trim());
   const normalizedChatQuery = chatQuery.trim().toLowerCase();
   const visibleThreads = state.threads
@@ -1054,6 +1134,7 @@ const CodexRemotePanel: FC = () => {
 
   const persistSettings = async (nextSettings: Settings) => {
     setLocalSettings(nextSettings);
+    setDiagnostics(null);
     try {
       await setSettings(nextSettings);
       return nextSettings;
@@ -1075,6 +1156,30 @@ const CodexRemotePanel: FC = () => {
       console.warn("[Codex Remote] Connection test failed", error);
       setConnectionMessage("Connection test failed.");
     }
+  };
+
+  const runDiagnostics = async () => {
+    try {
+      await setSettings(settings);
+      const result = await getDiagnostics();
+      setDiagnostics(result);
+      setConnectionMessage(result.ok ? "Diagnostics passed." : "Diagnostics need attention.");
+      toaster.toast({
+        title: "Codex Remote",
+        body: result.ok ? "Diagnostics passed." : "Diagnostics need attention.",
+      });
+    } catch (error) {
+      console.warn("[Codex Remote] Diagnostics failed", error);
+      setConnectionMessage("Diagnostics failed.");
+    }
+  };
+
+  const setConnectionMode = async (mode: "lan" | "remote") => {
+    if (mode === "lan") {
+      await persistSettings({ ...settings, serverUrl: "" });
+      return;
+    }
+    await persistSettings({ ...settings, serverUrl: settings.serverUrl || "" });
   };
 
   const runConnect = async () => {
@@ -1418,8 +1523,34 @@ const CodexRemotePanel: FC = () => {
                 <CodexButton compact variant="primary" onClick={runScanLan}>Scan</CodexButton>
                 <CodexButton compact variant="primary" onClick={runConnect} disabled={!hasEndpoint || !hasSecureToken}>Link</CodexButton>
                 <CodexButton compact variant="quiet" onClick={runConnectionTest}>Check</CodexButton>
-                <CodexButton compact variant="quiet" onClick={runDisconnect}>Disconnect</CodexButton>
+                <CodexButton compact variant="quiet" onClick={runDiagnostics}>Diagnose</CodexButton>
               </div>
+            </PanelSectionRow>
+            <PanelSectionRow>
+              <Focusable className="codexRemoteModeGrid" flow-children="row" tabIndex={0}>
+                <Focusable
+                  className={`codexRemoteModeItem${connectionMode === "lan" ? " codexRemoteModeItemActive" : ""}`}
+                  focusClassName="codexRemoteBottomNavItemFocus"
+                  onActivate={() => setConnectionMode("lan")}
+                  onClick={() => setConnectionMode("lan")}
+                  onOKButton={() => setConnectionMode("lan")}
+                  role="button"
+                  tabIndex={0}
+                >
+                  LAN
+                </Focusable>
+                <Focusable
+                  className={`codexRemoteModeItem${connectionMode === "remote" ? " codexRemoteModeItemActive" : ""}`}
+                  focusClassName="codexRemoteBottomNavItemFocus"
+                  onActivate={() => setConnectionMode("remote")}
+                  onClick={() => setConnectionMode("remote")}
+                  onOKButton={() => setConnectionMode("remote")}
+                  role="button"
+                  tabIndex={0}
+                >
+                  Remote URL
+                </Focusable>
+              </Focusable>
             </PanelSectionRow>
             {hasEndpoint && !hasSecureToken && (
               <PanelSectionRow>
@@ -1435,20 +1566,32 @@ const CodexRemotePanel: FC = () => {
                 </div>
               </PanelSectionRow>
             ))}
-            <PanelSectionRow>
-              <TextField
-                label="Host"
-                value={settings.host}
-                onChange={(event) => persistSettings({ ...settings, host: event.target.value })}
-              />
-            </PanelSectionRow>
-            <PanelSectionRow>
-              <TextField
-                label="Port"
-                value={settings.port}
-                onChange={(event) => persistSettings({ ...settings, port: event.target.value })}
-              />
-            </PanelSectionRow>
+            {connectionMode === "remote" ? (
+              <PanelSectionRow>
+                <TextField
+                  label="Server URL"
+                  value={settings.serverUrl}
+                  onChange={(event) => persistSettings({ ...settings, serverUrl: event.target.value })}
+                />
+              </PanelSectionRow>
+            ) : (
+              <>
+                <PanelSectionRow>
+                  <TextField
+                    label="Host"
+                    value={settings.host}
+                    onChange={(event) => persistSettings({ ...settings, host: event.target.value })}
+                  />
+                </PanelSectionRow>
+                <PanelSectionRow>
+                  <TextField
+                    label="Port"
+                    value={settings.port}
+                    onChange={(event) => persistSettings({ ...settings, port: event.target.value })}
+                  />
+                </PanelSectionRow>
+              </>
+            )}
             <PanelSectionRow>
               <TextField
                 label="Token"
@@ -1459,11 +1602,66 @@ const CodexRemotePanel: FC = () => {
             </PanelSectionRow>
             <PanelSectionRow>
               <ToggleField
+                label="Use VPN proxy"
+                checked={settings.proxyEnabled}
+                onChange={(checked) => persistSettings({ ...settings, proxyEnabled: checked })}
+              />
+            </PanelSectionRow>
+            {settings.proxyEnabled && (
+              <>
+                <PanelSectionRow>
+                  <TextField
+                    label="Proxy Host"
+                    value={settings.proxyHost}
+                    onChange={(event) => persistSettings({ ...settings, proxyHost: event.target.value })}
+                  />
+                </PanelSectionRow>
+                <PanelSectionRow>
+                  <TextField
+                    label="Proxy Port"
+                    value={settings.proxyPort}
+                    onChange={(event) => persistSettings({ ...settings, proxyPort: event.target.value })}
+                  />
+                </PanelSectionRow>
+              </>
+            )}
+            <PanelSectionRow>
+              <ToggleField
                 label="Live updates"
                 checked={settings.autoRefresh}
                 onChange={(checked) => persistSettings({ ...settings, autoRefresh: checked })}
               />
             </PanelSectionRow>
+            <PanelSectionRow>
+              <div className="codexRemoteActionGridSingle">
+                <CodexButton compact variant="quiet" onClick={runDisconnect}>Disconnect</CodexButton>
+              </div>
+            </PanelSectionRow>
+            {diagnostics && (
+              <PanelSectionRow>
+                <div className="codexRemoteDiagnosticList">
+                  {diagnostics.checks.map((check) => (
+                    <div className="codexRemoteDiagnosticRow" key={check.id}>
+                      <span
+                        className={`codexRemoteDot ${
+                          check.status === "ok"
+                            ? statusClass.working
+                            : check.status === "failed"
+                              ? statusClass.disconnected
+                              : check.status === "warning"
+                                ? statusClass.approval
+                                : statusClass.idle
+                        }`}
+                      />
+                      <div className="codexRemoteDiagnosticText">
+                        <div className="codexRemoteChatTitle">{check.label}</div>
+                        <div className="codexRemoteDiagnosticMessage">{check.message}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </PanelSectionRow>
+            )}
             {connectionMessage && (
               <PanelSectionRow>
                 <div className="codexRemoteMessage codexRemoteMessageDim">{connectionMessage}</div>

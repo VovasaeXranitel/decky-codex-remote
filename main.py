@@ -9,7 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import decky_plugin
 from codex_app_client import CodexAppClient
 from codex_remote.domain.defaults import DISCONNECTED_STATE
-from codex_remote.domain.models import normalize_settings
+from codex_remote.domain.models import endpoint_configured, normalize_settings, proxy_config, readyz_url
+from codex_remote.infrastructure.diagnostics import ConnectivityDiagnostics
 from codex_remote.infrastructure.discovery import LanDiscovery
 from codex_remote.infrastructure.settings_store import SettingsStore
 
@@ -17,6 +18,7 @@ from codex_remote.infrastructure.settings_store import SettingsStore
 class Plugin:
     _client = CodexAppClient()
     _discovery = LanDiscovery()
+    _diagnostics = ConnectivityDiagnostics()
 
     async def _main(self) -> None:
         decky_plugin.logger.info("Codex Remote backend started")
@@ -36,25 +38,24 @@ class Plugin:
 
     async def get_state(self) -> dict[str, Any]:
         settings = Plugin._read_settings(self)
-        if not settings.get("host"):
+        if not endpoint_configured(settings):
             return DISCONNECTED_STATE
         Plugin._client.configure(settings)
         return Plugin._client.state()
 
     async def test_connection(self) -> dict[str, Any]:
         settings = Plugin._read_settings(self)
-        host = str(settings.get("host") or "").strip()
-        port = str(settings.get("port") or "").strip()
         token = str(settings.get("token") or "").strip()
 
-        if not host:
-            return {"ok": False, "message": "Host is not configured."}
+        if not endpoint_configured(settings):
+            return {"ok": False, "message": "Server endpoint is not configured."}
         if not token:
             return {"ok": False, "message": "Server token is not configured. Scan can find the PC, but Link requires a capability token."}
 
-        url = f"http://{host}:{port}/readyz"
+        url = readyz_url(settings)
         try:
-            with request.urlopen(url, timeout=3) as response:
+            opener = self._url_opener(settings)
+            with opener.open(url, timeout=3) as response:
                 if response.status == 200:
                     return {"ok": True, "message": "Codex App Server is reachable. Link validates the token."}
 
@@ -63,6 +64,9 @@ class Plugin:
             return {"ok": False, "message": f"Connection failed: {exc.reason}"}
         except Exception as exc:
             return {"ok": False, "message": f"Connection failed: {exc}"}
+
+    async def get_diagnostics(self) -> dict[str, Any]:
+        return Plugin._diagnostics.run(Plugin._read_settings(self))
 
     async def connect(self) -> dict[str, Any]:
         settings = Plugin._read_settings(self)
@@ -110,3 +114,10 @@ class Plugin:
     def _read_settings(self) -> dict[str, Any]:
         settings = Plugin._settings_store(self).read()
         return normalize_settings(settings)
+
+    def _url_opener(self, settings: dict[str, Any]) -> request.OpenerDirector:
+        proxy = proxy_config(settings)
+        if not proxy:
+            return request.build_opener()
+        proxy_url = f"http://{proxy['host']}:{proxy['port']}"
+        return request.build_opener(request.ProxyHandler({"http": proxy_url, "https": proxy_url}))

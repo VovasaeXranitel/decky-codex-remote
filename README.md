@@ -12,6 +12,10 @@ The plugin is designed to be account-neutral. It does not include an OpenAI API 
 - Compact pages for Remote, Chats, Auth, Setup, and Log with persistent bottom navigation.
 - Secure setup mode for host, port, App Server capability token, LAN scan, and diagnostics.
 - LAN scan for Codex App Server discovery.
+- Optional `Server URL` mode for remote `ws://` or `wss://` endpoints.
+- Optional HTTP CONNECT proxy mode for split VPN clients such as Hiddify's local mixed proxy.
+- Remote endpoint handling is shared across state refresh, diagnostics, and WebSocket link.
+- Setup diagnostics for endpoint, token, proxy reachability, and VPN tunnel state.
 - ChatGPT device-code login through Codex App Server.
 - Chat picker with user-facing Codex thread names/previews.
 - Current chat/status/task view.
@@ -81,6 +85,18 @@ Keep the listener on a trusted LAN and use a strong token. Codex Remote requires
 
 Codex App Server is documented by OpenAI here: https://developers.openai.com/codex/app-server
 
+## Remote Endpoint And VPN Proxy
+
+For non-LAN setups, the `Setup` page also supports:
+
+- `LAN` / `Remote URL`: connection mode selector. LAN uses host/port and LAN scan; Remote URL uses a full WebSocket endpoint.
+- `Server URL`: a full `ws://...` or `wss://...` Codex App Server endpoint. When this is set, it takes priority over `Host` and `Port`.
+- `Use VPN proxy`: routes diagnostics and WebSocket traffic through an HTTP CONNECT proxy.
+- `Proxy Host` / `Proxy Port`: defaults are `127.0.0.1` and `12334`, matching Hiddify's local mixed proxy.
+- `Diagnose`: checks endpoint configuration, token presence, proxy reachability, and whether a tunnel interface is up when proxy mode is enabled.
+
+This is intended for user-owned split VPN setups. Keep Steam, LAN, and private IP ranges direct in the VPN client, and route only the remote Codex/OpenAI/relay domains through the VPN.
+
 ## Connection Flow
 
 1. Steam Deck discovers or selects the user's PC.
@@ -117,6 +133,9 @@ For ChatGPT sign-in, the plugin uses Codex App Server's official device-code flo
 ### Link fails
 
 - Check that the host, port, and token match the running Codex App Server.
+- If using `Server URL`, make sure it starts with `ws://` or `wss://`.
+- If using VPN proxy mode, make sure the local proxy is running and reachable on the configured host/port.
+- Press `Diagnose` on the `Setup` page and fix any failed row before pressing `Link`.
 - Press `Check` on the `Setup` page.
 - Restart Codex App Server and press `Sync`.
 - If the error is `401` or `403`, rotate/copy the App Server token again.
