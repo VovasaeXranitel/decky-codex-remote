@@ -1,14 +1,14 @@
-# Codex Remote v0.1.33
+# Codex Remote v0.1.34
 
-Connection-mode UX and diagnostics.
+Responsive offline controls and reliable persisted chats.
 
 ## Highlights
 
-- Adds LAN/Remote URL mode selection on the Setup page.
-- Shows only the relevant endpoint fields for the selected mode.
-- Adds diagnostics for endpoint, token, proxy reachability, and VPN tunnel state.
-- Keeps optional HTTP CONNECT proxy support for split VPN clients.
-- Keeps remote endpoint hardening from v0.1.32.
+- Keeps Decky RPC responsive while an offline App Server reconnects in the background.
+- Restores Scan, Link, Check, and other controls when the configured endpoint is unavailable.
+- Resumes persisted App Server threads before reading them or sending a new turn.
+- Shows a normal disconnected state when an action cannot reach the server.
+- Adds regression coverage for the offline polling queue and persisted chats.
 
 ## Install
 

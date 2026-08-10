@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.34 - 2026-08-10
+
+Restore responsive offline controls and persisted chats.
+
+- Reconnect in the background so periodic state polling never blocks Decky RPC calls.
+- Resume persisted but unloaded App Server threads before reading or sending messages.
+- Return a disconnected panel state instead of throwing when an action cannot connect.
+- Add regression tests for offline polling and persisted-thread resume.
+
 ## 0.1.33 - 2026-08-10
 
 Add connection-mode UX and diagnostics.

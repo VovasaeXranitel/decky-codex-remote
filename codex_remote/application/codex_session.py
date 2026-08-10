@@ -57,20 +57,9 @@ class CodexSession:
             self._error = "Not connected."
 
     def connect(self) -> dict[str, Any]:
-        with self._lock:
-            if self._thread and self._thread.is_alive():
-                return {"ok": self._connected, "message": self._error if not self._connected else "Connected."}
-
-            if not endpoint_configured(self._settings):
-                self._error = "Host is not configured."
-                return {"ok": False, "message": self._error}
-            if not self._settings.get("token"):
-                self._error = "App Server token is required."
-                return {"ok": False, "message": self._error}
-
-            self._stop.clear()
-            self._thread = threading.Thread(target=self._run, name="CodexAppClient", daemon=True)
-            self._thread.start()
+        start_error = self._start_connection()
+        if start_error:
+            return {"ok": False, "message": start_error}
 
         deadline = time.time() + 4
         while time.time() < deadline:
@@ -83,13 +72,31 @@ class CodexSession:
 
         return {"ok": False, "message": "Connection timed out."}
 
+    def _start_connection(self) -> str | None:
+        with self._lock:
+            if self._thread and self._thread.is_alive():
+                return None
+
+            if not endpoint_configured(self._settings):
+                self._error = "Host is not configured."
+                return self._error
+            if not self._settings.get("token"):
+                self._error = "App Server token is required."
+                return self._error
+
+            self._stop.clear()
+            self._error = "Initializing Codex App Server connection..."
+            self._thread = threading.Thread(target=self._run, name="CodexAppClient", daemon=True)
+            self._thread.start()
+        return None
+
     def disconnect(self) -> None:
         self._stop.set()
         self._transport.close()
         self._connected = False
 
     def state(self) -> dict[str, Any]:
-        self.connect()
+        self._start_connection()
         with self._lock:
             state = dict(self._last_state)
             if self._pending_approval:
@@ -101,7 +108,10 @@ class CodexSession:
             return state
 
     def send_action(self, action: str, payload: str | None = None) -> dict[str, Any]:
-        self.connect()
+        connection = self.connect()
+        if not connection["ok"]:
+            self._add_event("error", "Connection", connection["message"], "failed")
+            return self.state()
         if action == "approve":
             self._answer_approval(True)
         elif action == "deny":
@@ -116,7 +126,10 @@ class CodexSession:
         return self.state()
 
     def select_thread(self, thread_id: str) -> dict[str, Any]:
-        self.connect()
+        connection = self.connect()
+        if not connection["ok"]:
+            self._add_event("error", "Connection", connection["message"], "failed")
+            return self.state()
         selected_id = str(thread_id or "").strip()
         if not selected_id:
             self._add_message("No chat selected.")
@@ -321,7 +334,6 @@ class CodexSession:
             loaded_ids = loaded.get("data") or []
             listed = self._rpc("thread/list", {"limit": 8, "archived": False, "sortKey": "updated_at", "sortDirection": "desc"}, timeout=5)
             threads = listed.get("data") or []
-            summaries = self._thread_summaries(threads, loaded_ids)
             thread_id = self._active_thread_id or (loaded_ids[0] if loaded_ids else None)
             if not thread_id and threads:
                 thread_id = threads[0].get("id")
@@ -344,6 +356,10 @@ class CodexSession:
                     "messages": ["No Codex threads were found."],
                 }
                 return
+            if thread_id not in loaded_ids:
+                self._rpc("thread/resume", {"threadId": thread_id}, timeout=8)
+                loaded_ids.append(thread_id)
+            summaries = self._thread_summaries(threads, loaded_ids)
             self._active_thread_id = thread_id
             data = self._rpc("thread/read", {"threadId": thread_id, "includeTurns": True}, timeout=5)
             thread = data.get("thread") or {}
