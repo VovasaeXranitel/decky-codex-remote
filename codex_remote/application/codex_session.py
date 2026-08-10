@@ -177,6 +177,7 @@ class CodexSession:
                     },
                     "capabilities": {"experimentalApi": True},
                 }, timeout=8)
+                self._send_json({"method": "initialized", "params": {}})
                 self._refresh_snapshot(force=True)
                 with self._lock:
                     self._connected = True
@@ -334,10 +335,14 @@ class CodexSession:
             loaded_ids = loaded.get("data") or []
             listed = self._rpc("thread/list", {"limit": 8, "archived": False, "sortKey": "updated_at", "sortDirection": "desc"}, timeout=5)
             threads = listed.get("data") or []
-            thread_id = self._active_thread_id or (loaded_ids[0] if loaded_ids else None)
-            if not thread_id and threads:
-                thread_id = threads[0].get("id")
-            if not thread_id:
+            listed_ids = [str(thread.get("id")) for thread in threads if thread.get("id")]
+            candidate_ids: list[str] = []
+            if self._active_thread_id and self._active_thread_id in [*loaded_ids, *listed_ids]:
+                candidate_ids.append(self._active_thread_id)
+            candidate_ids.extend(str(thread_id) for thread_id in loaded_ids if thread_id)
+            candidate_ids.extend(listed_ids)
+            candidate_ids = list(dict.fromkeys(candidate_ids))
+            if not candidate_ids:
                 self._last_state = {
                     "status": "idle",
                     "thread": "No threads",
@@ -356,10 +361,43 @@ class CodexSession:
                     "messages": ["No Codex threads were found."],
                 }
                 return
-            if thread_id not in loaded_ids:
-                self._rpc("thread/resume", {"threadId": thread_id}, timeout=8)
-                loaded_ids.append(thread_id)
+
+            thread_id = None
+            for candidate_id in candidate_ids:
+                if candidate_id in loaded_ids:
+                    thread_id = candidate_id
+                    break
+                try:
+                    self._rpc("thread/resume", {"threadId": candidate_id, "excludeTurns": True}, timeout=8)
+                except RuntimeError as exc:
+                    if "active writer" in str(exc).lower():
+                        continue
+                    raise
+                loaded_ids.append(candidate_id)
+                thread_id = candidate_id
+                break
+
             summaries = self._thread_summaries(threads, loaded_ids)
+            if not thread_id:
+                self._last_state = {
+                    "status": "idle",
+                    "thread": "No available chats",
+                    "threadId": "",
+                    "threads": summaries,
+                    "task": "Chats are open in another Codex client",
+                    "transcript": [
+                        {
+                            "id": "active-writer",
+                            "kind": "system",
+                            "title": "Chats are busy",
+                            "body": "Choose a chat that is not currently open in another Codex client.",
+                            "status": "",
+                        }
+                    ],
+                    "messages": ["No chat is currently available for remote control."],
+                }
+                return
+
             self._active_thread_id = thread_id
             data = self._rpc("thread/read", {"threadId": thread_id, "includeTurns": True}, timeout=5)
             thread = data.get("thread") or {}

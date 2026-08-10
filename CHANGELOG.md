@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.35 - 2026-08-10
+
+Complete the Codex App Server connection handshake.
+
+- Send the required `initialized` notification immediately after `initialize`.
+- Prevent App Server from resetting an otherwise successful WebSocket connection.
+- Skip chats owned by another active Codex writer and select the first available chat.
+- Add regression coverage for initialization message ordering.
+
 ## 0.1.34 - 2026-08-10
 
 Restore responsive offline controls and persisted chats.

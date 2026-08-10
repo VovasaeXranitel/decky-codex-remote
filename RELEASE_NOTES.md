@@ -1,14 +1,14 @@
-# Codex Remote v0.1.34
+# Codex Remote v0.1.35
 
-Responsive offline controls and reliable persisted chats.
+Complete Codex App Server handshake.
 
 ## Highlights
 
-- Keeps Decky RPC responsive while an offline App Server reconnects in the background.
-- Restores Scan, Link, Check, and other controls when the configured endpoint is unavailable.
-- Resumes persisted App Server threads before reading them or sending a new turn.
-- Shows a normal disconnected state when an action cannot reach the server.
-- Adds regression coverage for the offline polling queue and persisted chats.
+- Sends the required `initialized` notification after `initialize`.
+- Prevents the App Server from resetting a successfully opened WebSocket session.
+- Skips chats currently owned by another Codex client and opens the first available chat.
+- Keeps the responsive offline controls and persisted-chat fixes from v0.1.34.
+- Adds regression coverage for initialization message ordering.
 
 ## Install
 
